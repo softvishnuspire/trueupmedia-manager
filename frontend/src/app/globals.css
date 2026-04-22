@@ -1,34 +1,36 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
-  --primary: #007698;
-  --primary-hover: #005c7a;
-  --secondary: #9FC321;
-  --secondary-hover: #8cb01b;
-  --surface: #ffffff;
-  --border: #e2e8f0;
-  --text-muted: #64748b;
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.5);
-  --glass-shadow: 0 8px 32px 0 rgba(0, 118, 152, 0.07);
+  --background: #060A0F;
+  --foreground: #F8FAFC;
+  --primary: #06B6D4;
+  --primary-hover: #0891B2;
+  --secondary: #84CC16;
+  --secondary-hover: #65a30d;
+  --surface: #0F172A;
+  --inner-card: #111827;
+  --border: rgba(255, 255, 255, 0.08);
+  --text-muted: #94A3B8;
+  --glass-bg: rgba(15, 23, 42, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #09090b;
-    --foreground: #f8fafc;
-    --primary: #007698;
-    --primary-hover: #0093be;
-    --secondary: #9FC321;
-    --secondary-hover: #b4d935;
-    --surface: #18181b;
-    --border: #27272a;
-    --text-muted: #a1a1aa;
-    --glass-bg: rgba(24, 24, 27, 0.7);
+    --background: #060A0F;
+    --foreground: #F8FAFC;
+    --primary: #06B6D4;
+    --primary-hover: #0891B2;
+    --secondary: #84CC16;
+    --secondary-hover: #65a30d;
+    --surface: #0F172A;
+    --inner-card: #111827;
+    --border: rgba(255, 255, 255, 0.08);
+    --text-muted: #94A3B8;
+    --glass-bg: rgba(15, 23, 42, 0.7);
     --glass-border: rgba(255, 255, 255, 0.08);
-    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    --glass-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
   }
 }
 

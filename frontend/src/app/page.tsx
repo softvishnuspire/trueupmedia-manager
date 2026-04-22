@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, FormEvent } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import styles from './page.module.css';
 
@@ -45,8 +45,9 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [logoError, setLogoError] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -99,17 +100,17 @@ export default function Login() {
         {/* Left Branding Section */}
         <div className={styles.brandSection}>
           <div className={styles.brandContent}>
-            <div className={styles.logo} style={{ fontSize: '2.5rem', letterSpacing: '-0.05em', display: 'flex', alignItems: 'baseline' }}>
-              <span style={{ color: 'var(--secondary)' }}>T</span>
-              <span style={{ color: 'var(--primary)', marginRight: '0.2rem' }}>rue</span>
-              <span style={{ color: 'var(--secondary)', position: 'relative', display: 'inline-flex', alignItems: 'flex-start' }}>
-                U
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style={{ width: '0.6em', height: '0.6em', position: 'absolute', top: '-0.1em', right: '-0.2em' }}>
-                  <path d="M12 2L20 10H15V22H9V10H4L12 2Z" />
-                </svg>
-                p
-              </span>
-              <span style={{ color: 'var(--primary)', fontSize: '1.5rem', marginLeft: '0.5rem', fontWeight: '500' }}>Media</span>
+            <div className={styles.logoContainer}>
+              {!logoError ? (
+                <img 
+                  src="/logo.png" 
+                  alt="TrueUp Media" 
+                  className={styles.mainLogo}
+                  onError={() => setLogoError(true)}
+                />
+              ) : (
+                <h1 style={{ color: 'var(--primary)', fontSize: '2.5rem', margin: 0 }}>TrueUp Media</h1>
+              )}
             </div>
           </div>
           <div className={styles.welcomeText}>
