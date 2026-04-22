@@ -14,6 +14,9 @@ export const gmApi = {
     updateContent: (id: string, data: any) => api.put(`/content/${id}`, data),
     deleteContent: (id: string) => api.delete(`/content/${id}`),
     updateStatus: (id: string, new_status: string) => api.patch(`/content/${id}/status`, { new_status }),
+    getTeamLeads: () => api.get('/team-leads'),
+    assignClient: (clientId: string, teamLeadId: string) => api.patch(`/clients/${clientId}/assign`, { team_lead_id: teamLeadId }),
+    getTeamLeadClients: (teamLeadId: string) => api.get(`/team-leads/${teamLeadId}/clients`),
 };
 
 const adminBase = axios.create({

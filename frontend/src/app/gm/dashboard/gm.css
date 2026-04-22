@@ -722,3 +722,190 @@
 .log-time {
     color: #94a3b8;
 }
+
+/* ─── Teams View ─── */
+.teams-container {
+    animation: fadeIn 0.3s ease;
+}
+
+.teams-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+}
+
+.team-card {
+    background: white;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.team-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.06);
+}
+
+.team-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.lead-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.lead-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 800;
+    font-size: 18px;
+}
+
+.lead-name {
+    font-size: 16px;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.lead-role {
+    font-size: 12px;
+    color: #94a3b8;
+    font-weight: 600;
+}
+
+.btn-assign-small {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: #f1f5f9;
+    color: #475569;
+    border: none;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.btn-assign-small:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+.assigned-clients {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.assigned-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #94a3b8;
+}
+
+.assigned-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.assigned-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px 6px 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.btn-unassign {
+    padding: 4px;
+    border-radius: 4px;
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+}
+
+.btn-unassign:hover {
+    background: #fee2e2;
+    color: #ef4444;
+}
+
+.empty-assigned {
+    font-size: 12px;
+    color: #cbd5e1;
+    font-style: italic;
+    padding: 8px 0;
+}
+
+.teams-empty-state {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 0;
+    background: #ffffff;
+    border: 2px dashed #e2e8f0;
+    border-radius: 16px;
+    color: #64748b;
+    gap: 12px;
+}
+
+.teams-empty-state svg {
+    color: #cbd5e1;
+}
+
+.teams-loading-state {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
+    padding: 80px 0;
+}
+
+.spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #f1f5f9;
+    border-top: 3px solid #4f46e5;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
