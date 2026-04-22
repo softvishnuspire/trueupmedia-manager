@@ -51,8 +51,13 @@ export default function GMDashboard() {
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [calendarData, setCalendarData] = useState<ContentItem[]>([]);
     const [loading, setLoading] = useState(false);
-    const [isMasterMode, setIsMasterMode] = useState(false);
+    const [view, setView] = useState<'client' | 'master' | 'teams'>('client');
     
+    // Team leads state
+    const [teamLeads, setTeamLeads] = useState<any[]>([]);
+    const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+    const [assignTarget, setAssignTarget] = useState<any>(null); // { client, teamLead }
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -71,12 +76,27 @@ export default function GMDashboard() {
     }, []);
 
     useEffect(() => {
-        if (isMasterMode) {
+        if (view === 'master') {
             fetchMasterCalendar();
-        } else if (selectedClient) {
+        } else if (view === 'client' && selectedClient) {
             fetchClientCalendar();
+        } else if (view === 'teams') {
+            fetchTeamLeads();
         }
-    }, [selectedClient, currentMonth, isMasterMode]);
+    }, [selectedClient, currentMonth, view]);
+
+    const fetchTeamLeads = async () => {
+        setLoading(true);
+        try {
+            const res = await gmApi.getTeamLeads();
+            // For each team lead, fetch their assigned clients
+            const leadsWithClients = await Promise.all(res.data.map(async (lead: any) => {
+                const clientsRes = await gmApi.getTeamLeadClients(lead.user_id);
+                return { ...lead, clients: clientsRes.data };
+            }));
+            setTeamLeads(leadsWithClients);
+        } catch (err) { console.error(err); } finally { setLoading(false); }
+    };
 
     const fetchClients = async () => {
         try {
@@ -139,6 +159,15 @@ export default function GMDashboard() {
         }
     };
 
+    const handleAssignClient = async (clientId: string, teamLeadId: string) => {
+        try {
+            await gmApi.assignClient(clientId, teamLeadId);
+            fetchTeamLeads();
+            fetchClients();
+            setIsAssignModalOpen(false);
+        } catch (err) { alert('Error assigning client'); }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const scheduled_datetime = format(selectedDate!, 'yyyy-MM-dd') + 'T' + formData.time + ':00';
@@ -149,7 +178,7 @@ export default function GMDashboard() {
                 await gmApi.addContent({ client_id: selectedClient, title: formData.title, description: formData.description, content_type: formData.content_type, scheduled_datetime });
             }
             setIsModalOpen(false);
-            if (isMasterMode) fetchMasterCalendar(); else fetchClientCalendar();
+            if (view === 'master') fetchMasterCalendar(); else fetchClientCalendar();
         } catch (err) { alert('Error saving item'); }
     };
 
@@ -170,23 +199,28 @@ export default function GMDashboard() {
                 <nav className="flex-1">
                     <p className="sidebar-label">Navigation</p>
                     <div 
-                        onClick={() => setIsMasterMode(false)}
-                        className={`nav-item ${!isMasterMode ? 'active' : ''}`}
+                        onClick={() => setView('client')}
+                        className={`nav-item ${view === 'client' ? 'active' : ''}`}
                     >
                         <LayoutDashboard size={20} />
                         <span>Client Dashboard</span>
                     </div>
                     <div 
-                        onClick={() => setIsMasterMode(true)}
-                        className={`nav-item ${isMasterMode ? 'active' : ''}`}
+                        onClick={() => setView('master')}
+                        className={`nav-item ${view === 'master' ? 'active' : ''}`}
                     >
                         <Globe size={20} />
                         <span>Master Calendar</span>
                     </div>
+                    <div 
+                        onClick={() => setView('teams')}
+                        className={`nav-item ${view === 'teams' ? 'active' : ''}`}
+                    >
+                        <Users size={20} />
+                        <span>Teams</span>
+                    </div>
 
-
-
-                    {!isMasterMode && (
+                    {view === 'client' && (
                         <>
                             <p className="sidebar-label">Clients</p>
                             <div className="client-list">
@@ -226,13 +260,15 @@ export default function GMDashboard() {
                 <header className="page-header">
                     <div>
                         <h1 className="page-title">
-                            {isMasterMode ? 'Master Schedule' : 'Client Calendar'}
+                            {view === 'master' ? 'Master Schedule' : view === 'teams' ? 'Team Management' : 'Client Calendar'}
                         </h1>
-                        <p className="page-subtitle">Review and manage content production flow</p>
+                        <p className="page-subtitle">
+                            {view === 'teams' ? 'Assign clients to team leads and monitor workloads' : 'Review and manage content production flow'}
+                        </p>
                     </div>
 
                     <div className="header-controls">
-                        {!isMasterMode && (
+                        {view === 'client' && (
                             <div className="client-dropdown-wrapper">
                                 <select
                                     className="client-dropdown"
@@ -248,54 +284,149 @@ export default function GMDashboard() {
                             </div>
                         )}
 
-                        <div className="month-nav">
-                            <button onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="month-btn"><ChevronLeft size={20}/></button>
-                            <span className="month-label">{format(currentMonth, 'MMMM yyyy')}</span>
-                            <button onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="month-btn"><ChevronRight size={20}/></button>
-                        </div>
+                        {view !== 'teams' && (
+                            <div className="month-nav">
+                                <button onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="month-btn"><ChevronLeft size={20}/></button>
+                                <span className="month-label">{format(currentMonth, 'MMMM yyyy')}</span>
+                                <button onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="month-btn"><ChevronRight size={20}/></button>
+                            </div>
+                        )}
                     </div>
                 </header>
 
                 {loading && <div className="loading-bar">Loading...</div>}
 
-                <div className="calendar-card">
-                    <div className="calendar-grid">
-                        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
-                            <div key={day} className="calendar-header-cell">{day}</div>
-                        ))}
-
-                        {days.map((day, idx) => {
-                            const dayContent = calendarData.filter(item => {
-                                const itemDate = parseISO(item.scheduled_datetime);
-                                return isSameDay(itemDate, day);
-                            });
-                            return (
-                                <div 
-                                    key={idx} 
-                                    onClick={() => handleAddClick(day)}
-                                    className={`calendar-day ${!isSameMonth(day, currentMonth) ? 'other-month' : ''} ${isSameDay(day, new Date()) ? 'today' : ''}`}
-                                >
-                                    <span className="day-number">{format(day, 'd')}</span>
-                                    <div className="day-items">
-                                        {dayContent.map(item => (
-                                            <div 
-                                                key={item.id}
-                                                onClick={(e) => { e.stopPropagation(); handleItemClick(item); }}
-                                                className={`content-item ${item.content_type.toLowerCase()}`}
-                                            >
-                                                {item.content_type === 'Post' ? <FileText size={10}/> : <Video size={10}/>}
-                                                <span className="truncate">
-                                                    {isMasterMode ? `[${item.clients?.company_name?.substring(0,3)}] ` : ''}
-                                                    {item.title}
-                                                </span>
+                {view === 'teams' ? (
+                    <div className="teams-container">
+                        <div className="teams-grid">
+                            {loading ? (
+                                <div className="teams-loading-state">
+                                    <div className="spinner"></div>
+                                </div>
+                            ) : teamLeads.length > 0 ? (
+                                teamLeads.map(lead => (
+                                    <div key={lead.user_id} className="team-card">
+                                        <div className="team-card-header">
+                                            <div className="lead-info">
+                                                <div className="lead-avatar">
+                                                    {lead.name?.charAt(0)}
+                                                </div>
+                                                <div>
+                                                    <h3 className="lead-name">{lead.name}</h3>
+                                                    <p className="lead-role">{lead.role}</p>
+                                                </div>
                                             </div>
-                                        ))}
+                                            <button 
+                                                className="btn-assign-small"
+                                                onClick={() => {
+                                                    setAssignTarget({ teamLead: lead });
+                                                    setIsAssignModalOpen(true);
+                                                }}
+                                            >
+                                                <Plus size={14} />
+                                                Assign Client
+                                            </button>
+                                        </div>
+                                        
+                                        <div className="assigned-clients">
+                                            <p className="assigned-label">Assigned Clients ({lead.clients?.length || 0})</p>
+                                            <div className="assigned-list">
+                                                {lead.clients?.length === 0 && (
+                                                    <p className="empty-assigned">No clients assigned</p>
+                                                )}
+                                                {lead.clients?.map((c: any) => (
+                                                    <div key={c.id} className="assigned-item">
+                                                        <span>{c.company_name}</span>
+                                                        <button 
+                                                            className="btn-unassign"
+                                                            onClick={() => handleAssignClient(c.id, '')}
+                                                        >
+                                                            <X size={12} />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="teams-empty-state">
+                                    <Users size={48} strokeWidth={1.5} />
+                                    <p>No team leads found in the system.</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Assign Modal */}
+                        {isAssignModalOpen && assignTarget && (
+                            <div className="modal-overlay">
+                                <div className="modal-content">
+                                    <div className="modal-header">
+                                        <h3 className="modal-title">Assign Client to {assignTarget.teamLead.name}</h3>
+                                        <button onClick={() => setIsAssignModalOpen(false)} className="modal-close"><X size={20}/></button>
+                                    </div>
+                                    <div className="modal-form">
+                                        <div className="form-group">
+                                            <label className="form-label">Select Client</label>
+                                            <select 
+                                                className="form-input"
+                                                onChange={(e) => handleAssignClient(e.target.value, assignTarget.teamLead.user_id)}
+                                                defaultValue=""
+                                            >
+                                                <option value="" disabled>Choose a client...</option>
+                                                {clients.filter(c => !teamLeads.some(l => l.clients?.some((lc: any) => lc.id === c.id))).map(c => (
+                                                    <option key={c.id} value={c.id}>{c.company_name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <p style={{ fontSize: 12, color: '#64748b' }}>
+                                            Only showing clients not currently assigned to any team lead.
+                                        </p>
                                     </div>
                                 </div>
-                            );
-                        })}
+                            </div>
+                        )}
                     </div>
-                </div>
+                ) : (
+                    <div className="calendar-card">
+                        <div className="calendar-grid">
+                            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                                <div key={day} className="calendar-header-cell">{day}</div>
+                            ))}
+
+                            {days.map((day, idx) => {
+                                const dayContent = calendarData.filter(item => {
+                                    const itemDate = parseISO(item.scheduled_datetime);
+                                    return isSameDay(itemDate, day);
+                                });
+                                return (
+                                    <div 
+                                        key={idx} 
+                                        onClick={() => handleAddClick(day)}
+                                        className={`calendar-day ${!isSameMonth(day, currentMonth) ? 'other-month' : ''} ${isSameDay(day, new Date()) ? 'today' : ''}`}
+                                    >
+                                        <span className="day-number">{format(day, 'd')}</span>
+                                        <div className="day-items">
+                                            {dayContent.map(item => (
+                                                <div 
+                                                    key={item.id}
+                                                    onClick={(e) => { e.stopPropagation(); handleItemClick(item); }}
+                                                    className={`content-item ${item.content_type.toLowerCase()}`}
+                                                >
+                                                    {item.content_type === 'Post' ? <FileText size={10}/> : <Video size={10}/>}
+                                                    <span className="truncate">
+                                                        {view === 'master' ? `[${item.clients?.company_name?.substring(0,3)}] ` : ''}
+                                                        {item.title}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
             </main>
 
             {/* Add/Edit Modal */}

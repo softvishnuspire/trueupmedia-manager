@@ -202,5 +202,45 @@ app.get('/api/gm/content/:id', async (req, res) => {
     res.json({ item, history: logs || [] });
 });
 
+// ─── Team Leads ───
+app.get('/api/gm/team-leads', async (req, res) => {
+    const { data, error } = await supabase
+        .from('users')
+        .select('user_id, name, email, role')
+        .in('role', ['TL1', 'TL2']);
+    
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data);
+});
+
+// ─── Assign Client to Team Lead ───
+app.patch('/api/gm/clients/:id/assign', async (req, res) => {
+    const { id } = req.params;
+    const { team_lead_id } = req.body;
+
+    const { data, error } = await supabase
+        .from('clients')
+        .update({ team_lead_id })
+        .eq('id', id)
+        .select();
+
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data[0]);
+});
+
+// ─── Get Clients for a Team Lead ───
+app.get('/api/gm/team-leads/:id/clients', async (req, res) => {
+    const { id } = req.params;
+    const { data, error } = await supabase
+        .from('clients')
+        .select('id, company_name')
+        .eq('team_lead_id', id)
+        .eq('is_active', true)
+        .eq('is_deleted', false);
+    
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data);
+});
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
