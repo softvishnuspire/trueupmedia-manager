@@ -62,8 +62,8 @@ export default function AdminLayout({
     <div className="dashboard-container">
       <aside className="sidebar">
         <div className="logo-container">
-          <div className="logo-icon">T</div>
-          <span>TrueUp Media <span style={{ color: '#94a3b8', fontSize: '12px', fontWeight: 600 }}>Admin</span></span>
+          <img src="/logo.png" alt="TrueUp Media" className="logo-img" />
+          <span style={{ marginLeft: '4px', color: '#94a3b8', fontSize: '12px', fontWeight: 600 }}>Admin</span>
         </div>
 
         <nav style={{ flex: 1 }}>

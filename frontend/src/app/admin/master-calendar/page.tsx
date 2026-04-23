@@ -110,26 +110,58 @@ export default function MasterCalendar() {
                 </div>
 
                 <div className="header-controls">
-                    <div style={{ display: 'flex', background: '#f1f5f9', padding: '4px', borderRadius: '10px', marginRight: '8px' }}>
+                    <div style={{ display: 'flex', gap: '4px', alignItems: 'center', background: '#f8fafc', padding: '4px', borderRadius: '14px', border: '1px solid #e2e8f0', marginRight: '8px' }}>
+                        <div style={{ padding: '0 8px', color: '#94a3b8' }}>
+                            <Filter size={14} />
+                        </div>
+                        <div className="client-dropdown-wrapper" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                            <select 
+                                value={selectedClient} 
+                                onChange={(e) => setSelectedClient(e.target.value)}
+                                style={{ 
+                                    minWidth: '130px', border: 'none', background: 'transparent', 
+                                    boxShadow: 'none', padding: '6px 32px 6px 4px', 
+                                    fontSize: '13px', fontWeight: 700, width: 'auto',
+                                    color: '#1e293b', outline: 'none', appearance: 'none',
+                                    WebkitAppearance: 'none', cursor: 'pointer'
+                                }}
+                            >
+                                <option value="all">All Clients</option>
+                                {clients.map(c => (
+                                    <option key={c.id} value={c.id}>{c.company_name}</option>
+                                ))}
+                            </select>
+                            <ChevronDown size={14} style={{ position: 'absolute', right: '10px', color: '#94a3b8', pointerEvents: 'none' }} />
+                        </div>
+                        <div style={{ width: '1px', height: '20px', background: '#e2e8f0' }}></div>
+                        <div className="client-dropdown-wrapper" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                            <select 
+                                value={selectedType} 
+                                onChange={(e) => setSelectedType(e.target.value)}
+                                style={{ 
+                                    minWidth: '100px', border: 'none', background: 'transparent', 
+                                    boxShadow: 'none', padding: '6px 32px 6px 4px', 
+                                    fontSize: '13px', fontWeight: 700, width: 'auto',
+                                    color: '#1e293b', outline: 'none', appearance: 'none',
+                                    WebkitAppearance: 'none', cursor: 'pointer'
+                                }}
+                            >
+                                <option value="all">All Types</option>
+                                <option value="Post">Posts</option>
+                                <option value="Reel">Reels</option>
+                            </select>
+                            <ChevronDown size={14} style={{ position: 'absolute', right: '10px', color: '#94a3b8', pointerEvents: 'none' }} />
+                        </div>
+                    </div>
+
+                    <div className="view-mode-toggle">
                         <button 
                             onClick={() => setViewMode('month')}
-                            style={{ 
-                                padding: '6px 12px', borderRadius: '8px', border: 'none', fontSize: '12px', fontWeight: 700,
-                                background: viewMode === 'month' ? 'white' : 'transparent',
-                                color: viewMode === 'month' ? '#4f46e5' : '#64748b',
-                                boxShadow: viewMode === 'month' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
-                                cursor: 'pointer'
-                            }}
+                            className={`view-mode-btn ${viewMode === 'month' ? 'active' : ''}`}
                         >Month</button>
                         <button 
                             onClick={() => setViewMode('week')}
-                            style={{ 
-                                padding: '6px 12px', borderRadius: '8px', border: 'none', fontSize: '12px', fontWeight: 700,
-                                background: viewMode === 'week' ? 'white' : 'transparent',
-                                color: viewMode === 'week' ? '#4f46e5' : '#64748b',
-                                boxShadow: viewMode === 'week' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
-                                cursor: 'pointer'
-                            }}
+                            className={`view-mode-btn ${viewMode === 'week' ? 'active' : ''}`}
                         >Week</button>
                     </div>
 
@@ -150,39 +182,11 @@ export default function MasterCalendar() {
                 </div>
             </header>
 
-            <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
-                <div className="client-dropdown-wrapper">
-                    <select 
-                        value={selectedClient} 
-                        onChange={(e) => setSelectedClient(e.target.value)}
-                        className="client-dropdown"
-                    >
-                        <option value="all">All Clients</option>
-                        {clients.map(c => (
-                            <option key={c.id} value={c.id}>{c.company_name}</option>
-                        ))}
-                    </select>
-                    <ChevronDown size={16} className="dropdown-chevron" />
-                </div>
-
-                <div className="client-dropdown-wrapper">
-                    <select 
-                        value={selectedType} 
-                        onChange={(e) => setSelectedType(e.target.value)}
-                        className="client-dropdown"
-                    >
-                        <option value="all">All Content Types</option>
-                        <option value="Post">Posts Only</option>
-                        <option value="Reel">Reels Only</option>
-                    </select>
-                    <ChevronDown size={16} className="dropdown-chevron" />
-                </div>
-            </div>
 
             {loading && <div className="loading-bar">Updating calendar...</div>}
 
             <div className="calendar-card">
-                <div className="calendar-grid" style={{ gridTemplateRows: viewMode === 'week' ? 'auto 1fr' : 'repeat(6, 1fr)' }}>
+                <div className="calendar-grid" style={{ gridTemplateRows: viewMode === 'week' ? 'auto 1fr' : 'auto', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))' }}>
                     {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
                         <div key={day} className="calendar-header-cell">{day}</div>
                     ))}

@@ -35,6 +35,12 @@
     color: #4f46e5;
 }
 
+.logo-img {
+    height: 32px;
+    width: auto;
+    object-fit: contain;
+}
+
 .logo-icon {
     width: 32px;
     height: 32px;
@@ -178,6 +184,40 @@
     gap: 12px;
 }
 
+.view-mode-toggle {
+    display: flex;
+    background: #f1f5f9;
+    padding: 4px;
+    border-radius: 12px;
+    margin-right: 12px;
+    border: 1px solid #e2e8f0;
+}
+
+.view-mode-btn {
+    padding: 6px 16px;
+    border-radius: 9px;
+    border: none;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.view-mode-btn.active {
+    background: white;
+    color: #4f46e5;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.view-mode-btn:not(.active) {
+    background: transparent;
+    color: #64748b;
+}
+
+.view-mode-btn:not(.active):hover {
+    color: #1e293b;
+}
+
 .month-nav {
     display: flex;
     align-items: center;
@@ -269,7 +309,8 @@
 
 .calendar-grid {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    width: 100%;
 }
 
 .calendar-header-cell {
@@ -285,12 +326,20 @@
 }
 
 .calendar-day {
-    min-height: 110px;
+    min-height: 120px;
+    height: auto;
     padding: 8px;
     border-right: 1px solid #f1f5f9;
     border-bottom: 1px solid #f1f5f9;
     cursor: pointer;
     transition: background 0.15s ease;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.calendar-day.weekly-cell {
+    min-height: 300px !important;
 }
 
 .calendar-day:hover {

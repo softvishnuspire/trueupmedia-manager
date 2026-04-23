@@ -35,6 +35,12 @@
     color: #4f46e5;
 }
 
+.logo-img {
+    height: 32px;
+    width: auto;
+    object-fit: contain;
+}
+
 .logo-icon {
     width: 32px;
     height: 32px;
@@ -162,6 +168,26 @@
 .user-role {
     font-size: 11px;
     color: #94a3b8;
+}
+
+.logout-btn {
+    margin-left: auto;
+    padding: 8px;
+    border: none;
+    background: #fff1f2;
+    color: #e11d48;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logout-btn:hover {
+    background: #ffe4e6;
+    color: #be123c;
+    transform: scale(1.05);
 }
 
 /* ─── Main Content ─── */
@@ -328,7 +354,8 @@
 
 .calendar-grid {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    width: 100%;
 }
 
 .calendar-header-cell {
@@ -353,6 +380,7 @@
     transition: background 0.15s ease;
     display: flex;
     flex-direction: column;
+    min-width: 0; /* Essential for grid column sizing */
 }
 
 .calendar-day.weekly-cell {
@@ -406,6 +434,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     width: 100%;
+    min-width: 0;
 }
 
 .content-item span {

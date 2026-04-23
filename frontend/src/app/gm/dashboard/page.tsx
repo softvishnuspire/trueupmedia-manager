@@ -28,9 +28,13 @@ import {
     CheckCircle2,
     Calendar as CalendarIcon,
     X,
-    ArrowRight
+    ArrowRight,
+    LogOut,
+    Filter
 } from 'lucide-react';
 import { gmApi } from '@/lib/api';
+import { createClient } from '@/utils/supabase/client';
+import { useRouter } from 'next/navigation';
 import './gm.css';
 
 // Matches actual DB: content_items has id, client_id, title, scheduled_datetime, status, content_type, description
@@ -47,12 +51,16 @@ interface ContentItem {
 
 export default function GMDashboard() {
     const [clients, setClients] = useState<any[]>([]);
-    const [selectedClient, setSelectedClient] = useState<string>('');
+    const [selectedClient, setSelectedClient] = useState<string>('all');
+    const [selectedType, setSelectedType] = useState<string>('all');
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [viewMode, setViewMode] = useState<'month' | 'week'>('month');
     const [calendarData, setCalendarData] = useState<ContentItem[]>([]);
     const [loading, setLoading] = useState(false);
     const [view, setView] = useState<'client' | 'master' | 'teams'>('client');
+    
+    const router = useRouter();
+    const supabase = createClient();
     
     // Team leads state
     const [teamLeads, setTeamLeads] = useState<any[]>([]);
@@ -81,12 +89,12 @@ export default function GMDashboard() {
     useEffect(() => {
         if (view === 'master') {
             fetchMasterCalendar();
-        } else if (view === 'client' && selectedClient) {
+        } else if (view === 'client' && selectedClient && selectedClient !== 'all') {
             fetchClientCalendar();
         } else if (view === 'teams') {
             fetchTeamLeads();
         }
-    }, [selectedClient, currentMonth, view]);
+    }, [selectedClient, selectedType, currentMonth, view]);
 
     const fetchTeamLeads = async () => {
         setLoading(true);
@@ -124,7 +132,11 @@ export default function GMDashboard() {
     const fetchMasterCalendar = async () => {
         setLoading(true);
         try {
-            const res = await gmApi.getMasterCalendar(format(currentMonth, 'yyyy-MM'));
+            const res = await gmApi.getMasterCalendar(
+                format(currentMonth, 'yyyy-MM'),
+                selectedClient === 'all' ? undefined : selectedClient,
+                selectedType === 'all' ? undefined : selectedType
+            );
             setCalendarData(res.data);
         } catch (err) { console.error(err); } finally { setLoading(false); }
     };
@@ -186,6 +198,11 @@ export default function GMDashboard() {
         } catch (err) { alert('Error assigning client'); }
     };
 
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        router.push('/login');
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const scheduled_datetime = format(selectedDate!, 'yyyy-MM-dd') + 'T' + formData.time + ':00';
@@ -210,8 +227,8 @@ export default function GMDashboard() {
             {/* Sidebar */}
             <aside className="sidebar">
                 <div className="logo-container">
-                    <div className="logo-icon">T</div>
-                    <span>TrueUp Media</span>
+                    <img src="/logo.png" alt="TrueUp Media" className="logo-img" />
+                    <span style={{ marginLeft: '4px', color: '#94a3b8', fontSize: '12px', fontWeight: 600 }}>GM</span>
                 </div>
 
                 <nav className="flex-1">
@@ -263,13 +280,18 @@ export default function GMDashboard() {
                 </nav>
 
                 <div className="sidebar-footer">
-                    <div className="user-avatar">
-                        <Users size={20} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div className="user-avatar">
+                            <Users size={20} />
+                        </div>
+                        <div>
+                            <p className="user-name">General Manager</p>
+                            <p className="user-role">TrueUp Media</p>
+                        </div>
                     </div>
-                    <div>
-                        <p className="user-name">General Manager</p>
-                        <p className="user-role">TrueUp Media</p>
-                    </div>
+                    <button onClick={handleLogout} className="logout-btn" title="Sign Out">
+                        <LogOut size={18} />
+                    </button>
                 </div>
             </aside>
 
@@ -293,12 +315,48 @@ export default function GMDashboard() {
                                     value={selectedClient}
                                     onChange={(e) => setSelectedClient(e.target.value)}
                                 >
-                                    <option value="" disabled>Select a client</option>
+                                    <option value="all" disabled={selectedClient !== 'all'}>Select a client</option>
                                     {clients.map(c => (
                                         <option key={c.id} value={c.id}>{c.company_name}</option>
                                     ))}
                                 </select>
                                 <ChevronDown size={16} className="dropdown-chevron" />
+                            </div>
+                        )}
+
+                        {view === 'master' && (
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', background: '#f8fafc', padding: '4px', borderRadius: '14px', border: '1px solid #e2e8f0', marginRight: '8px' }}>
+                                <div style={{ padding: '0 8px', color: '#94a3b8' }}>
+                                    <Filter size={14} />
+                                </div>
+                                <div className="client-dropdown-wrapper">
+                                    <select
+                                        className="client-dropdown"
+                                        value={selectedClient}
+                                        onChange={(e) => setSelectedClient(e.target.value)}
+                                        style={{ minWidth: '140px', border: 'none', background: 'transparent', boxShadow: 'none', padding: '6px 32px 6px 4px' }}
+                                    >
+                                        <option value="all">All Clients</option>
+                                        {clients.map(c => (
+                                            <option key={c.id} value={c.id}>{c.company_name}</option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown size={14} className="dropdown-chevron" />
+                                </div>
+                                <div style={{ width: '1px', height: '20px', background: '#e2e8f0' }}></div>
+                                <div className="client-dropdown-wrapper">
+                                    <select
+                                        className="client-dropdown"
+                                        value={selectedType}
+                                        onChange={(e) => setSelectedType(e.target.value)}
+                                        style={{ minWidth: '140px', border: 'none', background: 'transparent', boxShadow: 'none', padding: '6px 32px 6px 4px' }}
+                                    >
+                                        <option value="all">All Types</option>
+                                        <option value="Post">Posts</option>
+                                        <option value="Reel">Reels</option>
+                                    </select>
+                                    <ChevronDown size={14} className="dropdown-chevron" />
+                                </div>
                             </div>
                         )}
 
@@ -428,7 +486,7 @@ export default function GMDashboard() {
                     </div>
                 ) : (
                     <div className="calendar-card">
-                        <div className="calendar-grid" style={{ gridTemplateRows: viewMode === 'week' ? 'auto 1fr' : 'repeat(6, 1fr)' }}>
+                        <div className="calendar-grid" style={{ gridTemplateRows: viewMode === 'week' ? 'auto 1fr' : 'auto' }}>
                             {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
                                 <div key={day} className="calendar-header-cell">{day}</div>
                             ))}
