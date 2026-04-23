@@ -865,30 +865,43 @@
     .mobile-menu-toggle {
         display: flex !important;
         position: fixed;
-        top: 16px;
-        left: 16px;
-        z-index: 10;
+        top: 14px;
+        left: 14px;
+        z-index: 100;
         background: var(--bg-surface);
         border: 1px solid var(--border);
         color: var(--text-primary);
-        padding: 10px;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        padding: 8px;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
 
     .main-content {
         margin-left: 0 !important;
-        padding: 80px 20px 40px !important;
+        padding: 70px 16px 40px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
     }
 
     .page-header {
-        margin-bottom: 24px !important;
+        margin-bottom: 20px !important;
+        padding-top: 10px !important;
     }
 
     .header-content {
         flex-direction: column !important;
         align-items: flex-start !important;
-        gap: 16px !important;
+        gap: 12px !important;
+    }
+
+    .page-title {
+        font-size: 22px !important;
+        line-height: 1.2 !important;
+    }
+
+    .page-subtitle {
+        font-size: 13px !important;
+        line-height: 1.4 !important;
     }
 
     .header-controls {

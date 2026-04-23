@@ -55,7 +55,7 @@ export default function ClientCalendarsList() {
         {loading ? (
           <div className="loading-bar">Loading client list...</div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px', padding: '24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '20px', padding: '20px' }}>
             {filteredClients.map((client) => (
               <Link 
                 key={client.id} 
