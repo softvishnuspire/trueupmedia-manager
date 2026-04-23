@@ -87,11 +87,10 @@ export default function TLDashboard() {
                     .eq('user_id', user.id)
                     .single();
 
-                if (profileError || !profileData || profileData.role !== 'TEAM LEAD') {
-                    console.warn('Invalid role or profile for TL dashboard:', profileError);
-                    // Redirect non-TL users back to a safe page
-                    window.location.href = profileData?.role === 'ADMIN' ? '/admin' : '/gm/dashboard';
-                    return;
+                const isTeamLead = ['tl', 'tl1', 'tl2', 'team lead', 'TL1', 'TL2', 'TEAM LEAD'].includes(profileData?.role);
+
+                if (profileError || !profileData || !isTeamLead) {
+                    console.warn('Profile validation check:', { role: profileData?.role, isTeamLead });
                 }
 
                 setUser(user);
