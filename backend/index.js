@@ -132,16 +132,25 @@ app.get('/api/gm/content/:id', async (req, res) => {
 
     const { data: logs } = await supabase
         .from('status_logs')
-        .select('*')
+        .select(`
+            *,
+            users:changed_by (
+                name,
+                role_identifier
+            )
+        `)
         .eq('item_id', id)
         .order('changed_at', { ascending: false });
+
 
     res.json({ item, history: logs || [] });
 });
 
 app.patch('/api/gm/content/:id/status', async (req, res) => {
     const { id } = req.params;
-    const { new_status } = req.body;
+    const { new_status, note, changed_by } = req.body;
+    
+    console.log(`[StatusUpdate] ID: ${id}, New: ${new_status}, Note: ${note}, User: ${changed_by}`);
 
     const { data: item, error: fetchError } = await supabase
         .from('content_items')
@@ -149,7 +158,10 @@ app.patch('/api/gm/content/:id/status', async (req, res) => {
         .eq('id', id)
         .single();
 
-    if (fetchError || !item) return res.status(404).json({ error: 'Item not found' });
+    if (fetchError || !item) {
+        console.error('[StatusUpdate] Fetch error:', fetchError);
+        return res.status(404).json({ error: 'Item not found' });
+    }
 
     const flow = STATUS_FLOWS[item.content_type];
     const currentIndex = flow.indexOf(item.status);
@@ -161,15 +173,35 @@ app.patch('/api/gm/content/:id/status', async (req, res) => {
         });
     }
 
+    // Update status
     const { error: updateError } = await supabase
         .from('content_items')
-        .update({ status: new_status })
+        .update({ status: new_status, updated_at: new Date().toISOString() })
         .eq('id', id);
 
-    if (updateError) return res.status(500).json({ error: updateError.message });
+    if (updateError) {
+        console.error('[StatusUpdate] Update error:', updateError);
+        return res.status(500).json({ error: 'Failed to update status' });
+    }
 
-    await supabase.from('status_logs').insert([{ item_id: id, old_status: item.status, new_status: new_status }]);
-    res.json({ message: 'Status updated successfully', new_status });
+    // Log the change
+    const logData = { 
+        item_id: id, 
+        old_status: item.status, 
+        new_status: new_status,
+        note: note || null,
+        changed_by: changed_by || null
+    };
+    
+    const { error: logError } = await supabase.from('status_logs').insert([logData]);
+
+    if (logError) {
+        console.error('[StatusUpdate] Log error:', logError);
+    } else {
+        console.log('[StatusUpdate] Success logging change');
+    }
+
+    res.json({ message: 'Status updated successfully' });
 });
 
 // ─── Admin: Client Management ───
@@ -364,6 +396,141 @@ app.get('/api/gm/team-leads/:id/clients', async (req, res) => {
         .eq('is_active', true)
         .eq('is_deleted', false);
     
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data);
+});
+
+// ─── Team Lead Endpoints ───
+app.get('/api/tl/clients', async (req, res) => {
+    const { tlId } = req.query;
+    console.log('Fetching TL clients for ID:', tlId);
+
+    if (!tlId) return res.status(400).json({ error: 'Missing tlId' });
+
+    const { data, error } = await supabase
+        .from('clients')
+        .select('*')
+        .eq('team_lead_id', tlId)
+        .eq('is_active', true)
+        .eq('is_deleted', false)
+        .order('company_name');
+    
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data);
+});
+
+app.get('/api/tl/calendar', async (req, res) => {
+    const { client_id, month, tlId } = req.query;
+    console.log(`Fetching calendar for client ${client_id}, month ${month}, TL ${tlId}`);
+
+    if (!client_id || !month || !tlId) return res.status(400).json({ error: 'Missing client_id, month, or tlId' });
+
+    // Verify TL manages this client
+    const { data: client, error: clientError } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('id', client_id)
+        .eq('team_lead_id', tlId)
+        .single();
+
+    if (clientError || !client) return res.status(403).json({ error: 'Access denied' });
+
+    const [year, mon] = month.split('-');
+    const startDate = `${year}-${mon}-01T00:00:00`;
+    const lastDay = new Date(parseInt(year), parseInt(mon), 0).getDate();
+    const endDate = `${year}-${mon}-${String(lastDay).padStart(2, '0')}T23:59:59`;
+
+    const { data, error } = await supabase
+        .from('content_items')
+        .select('*')
+        .eq('client_id', client_id)
+        .gte('scheduled_datetime', startDate)
+        .lte('scheduled_datetime', endDate)
+        .order('scheduled_datetime');
+
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data);
+});
+
+// ─── Team Lead: Content Management ───
+app.get('/api/tl/clients', async (req, res) => {
+    const { tlId } = req.query;
+    if (!tlId) return res.status(400).json({ error: 'tlId is required' });
+
+    const { data, error } = await supabase
+        .from('clients')
+        .select('*')
+        .eq('team_lead_id', tlId)
+        .eq('is_deleted', false);
+    
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data);
+});
+
+app.get('/api/tl/calendar', async (req, res) => {
+    const { client_id, month, tlId } = req.query;
+    if (!client_id || !month || !tlId) return res.status(400).json({ error: 'Missing parameters' });
+
+    // Verify client belongs to this TL
+    const { data: client, error: clientError } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('id', client_id)
+        .eq('team_lead_id', tlId)
+        .single();
+
+    if (clientError || !client) return res.status(403).json({ error: 'Unauthorized or client not found' });
+
+    const [year, mon] = month.split('-');
+    const startDate = `${year}-${mon}-01T00:00:00`;
+    const lastDay = new Date(parseInt(year), parseInt(mon), 0).getDate();
+    const endDate = `${year}-${mon}-${String(lastDay).padStart(2, '0')}T23:59:59`;
+
+    const { data, error } = await supabase
+        .from('content_items')
+        .select('*')
+        .eq('client_id', client_id)
+        .gte('scheduled_datetime', startDate)
+        .lte('scheduled_datetime', endDate)
+        .order('scheduled_datetime');
+
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data);
+});
+
+app.get('/api/tl/master-calendar', async (req, res) => {
+    const { month, tlId, content_type } = req.query;
+    console.log(`Fetching master calendar for month ${month}, TL ${tlId}`);
+
+    if (!month || !tlId) return res.status(400).json({ error: 'Missing month or tlId' });
+
+    // Get all clients for this TL
+    const { data: clients, error: clientsError } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('team_lead_id', tlId);
+
+    if (clientsError) return res.status(500).json({ error: clientsError.message });
+    if (!clients || clients.length === 0) return res.json([]);
+
+    const clientIds = clients.map(c => c.id);
+
+    const [year, mon] = month.split('-');
+    const startDate = `${year}-${mon}-01T00:00:00`;
+    const lastDay = new Date(parseInt(year), parseInt(mon), 0).getDate();
+    const endDate = `${year}-${mon}-${String(lastDay).padStart(2, '0')}T23:59:59`;
+
+    let query = supabase
+        .from('content_items')
+        .select(`*, clients (company_name)`)
+        .in('client_id', clientIds)
+        .gte('scheduled_datetime', startDate)
+        .lte('scheduled_datetime', endDate);
+
+    if (content_type) query = query.eq('content_type', content_type);
+
+    const { data, error } = await query.order('scheduled_datetime');
+
     if (error) return res.status(500).json({ error: error.message });
     res.json(data);
 });

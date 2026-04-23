@@ -82,6 +82,9 @@ export default function Login() {
         return;
       }
 
+      // Persist user for dashboard use
+      localStorage.setItem('user', JSON.stringify(data.user));
+
       // Redirect to the role's dashboard
       window.location.href = `/${selectedRole}/dashboard`;
     } catch {

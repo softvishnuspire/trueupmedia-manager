@@ -34,7 +34,8 @@ export const gmApi = {
     addContent: (data: Partial<ContentItem>) => api.post('/content', data),
     updateContent: (id: string, data: Partial<ContentItem>) => api.put(`/content/${id}`, data),
     deleteContent: (id: string) => api.delete(`/content/${id}`),
-    updateStatus: (id: string, new_status: string) => api.patch(`/content/${id}/status`, { new_status }),
+    updateStatus: (id: string, new_status: string, note?: string, changed_by?: string) => 
+        api.patch(`/content/${id}/status`, { new_status, note, changed_by }),
     getTeamLeads: () => api.get('/team-leads'),
     assignClient: (clientId: string, teamLeadId: string) => api.patch(`/clients/${clientId}/assign`, { team_lead_id: teamLeadId }),
     getTeamLeadClients: (teamLeadId: string) => api.get(`/team-leads/${teamLeadId}/clients`),
@@ -63,6 +64,17 @@ export const adminApi = {
     addTeamMember: (data: Partial<TeamMember>) => adminBase.post('/team', data),
     updateTeamMember: (id: string, data: any) => adminBase.put(`/team/${id}`, data),
     deleteTeamMember: (id: string) => adminBase.delete(`/team/${id}`),
+};
+
+const tlBase = axios.create({
+    baseURL: 'http://localhost:3001/api/tl',
+});
+
+export const tlApi = {
+    getClients: (tlId: string) => tlBase.get<Client[]>(`/clients?tlId=${tlId}`),
+    getCalendar: (clientId: string, month: string, tlId: string) => tlBase.get(`/calendar?client_id=${clientId}&month=${month}&tlId=${tlId}`),
+    getMasterCalendar: (month: string, tlId: string, contentType?: string) => 
+        tlBase.get<ContentItem[]>(`/master-calendar?month=${month}&tlId=${tlId}${contentType ? `&content_type=${contentType}` : ''}`),
 };
 
 export default api;

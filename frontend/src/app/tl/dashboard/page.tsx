@@ -1,95 +1,284 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
+    format, 
+    startOfMonth, 
+    endOfMonth, 
+    startOfWeek, 
+    endOfWeek, 
+    eachDayOfInterval, 
+    isSameMonth, 
+    isSameDay, 
+    addMonths, 
+    subMonths,
+    parseISO
+} from 'date-fns';
+import { 
+    ChevronLeft, 
+    ChevronRight, 
+    ChevronDown,
+    Plus, 
     LayoutDashboard,
     Globe, 
-    LogOut,
-    Calendar as CalendarIcon,
+    Users,
+    Clock,
     FileText,
     Video,
-    Clock,
-    CheckCircle2
+    CheckCircle2,
+    Calendar as CalendarIcon,
+    X,
+    ArrowRight,
+    Search,
+    LogOut
 } from 'lucide-react';
+import { tlApi, gmApi } from '@/lib/api';
 import { createClient } from '@/utils/supabase/client';
-import { useRouter } from 'next/navigation';
-import ThemeToggle from '@/components/ThemeToggle';
-import './tl.css';
+import '../../admin/admin.css'; // Using Admin Panel UI styles
+
+// Reusing interfaces from GM/Admin
+interface ContentItem {
+    id: string;
+    title: string;
+    description: string;
+    content_type: 'Post' | 'Reel';
+    scheduled_datetime: string;
+    status: string;
+    client_id: string;
+    clients?: { company_name: string };
+}
 
 export default function TLDashboard() {
-    const router = useRouter();
     const supabase = createClient();
-    const [view, setView] = useState<'assigned' | 'workflow'>('assigned');
-    
-    // Placeholder Data
-    const clients = [
-        { id: '1', company_name: 'Acme Corp' },
-        { id: '2', company_name: 'TechFlow' }
-    ];
+    const [user, setUser] = useState<any>(null);
+    const [profile, setProfile] = useState<any>(null);
+    const [clients, setClients] = useState<any[]>([]);
+    const [selectedClient, setSelectedClient] = useState<string>('');
+    const [currentMonth, setCurrentMonth] = useState(new Date());
+    const [calendarData, setCalendarData] = useState<ContentItem[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [view, setView] = useState<'client' | 'master'>('client');
+    const [searchQuery, setSearchQuery] = useState('');
 
-    const contentItems = [
-        { id: '1', title: 'Summer Campaign', type: 'Post', status: 'DESIGNING IN PROGRESS', time: '10:00 AM' },
-        { id: '2', title: 'Product Launch', type: 'Reel', status: 'SHOOT DONE', time: '02:00 PM' }
-    ];
+    
+    // Details modal state
+    const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+    const [activeItem, setActiveItem] = useState<any>(null);
+    const [statusNote, setStatusNote] = useState('');
+
+
+    const isMasterMode = view === 'master';
+
+    useEffect(() => {
+        const init = async () => {
+            setLoading(true);
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                
+                if (!user) {
+                    window.location.href = '/login';
+                    return;
+                }
+
+                // Verify role
+                const { data: profileData, error: profileError } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .single();
+
+                if (profileError || !profileData || profileData.role !== 'TEAM LEAD') {
+                    console.error('Invalid role or profile error:', profileError);
+                }
+
+                setUser(user);
+                setProfile(profileData);
+                await fetchClients(user.id);
+            } catch (err) {
+                console.error('Initialization error:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        init();
+    }, []);
+
+
+    useEffect(() => {
+        if (user) {
+            if (view === 'master') {
+                fetchMasterCalendar();
+            } else if (view === 'client' && selectedClient) {
+                fetchClientCalendar();
+            }
+        }
+    }, [selectedClient, currentMonth, view, user]);
+
+    const fetchClients = async (tlId: string) => {
+        try {
+            const res = await tlApi.getClients(tlId);
+            setClients(res.data);
+            if (res.data.length > 0 && !selectedClient) {
+                setSelectedClient(res.data[0].id);
+            }
+        } catch (err) { console.error('Error fetching clients:', err); }
+    };
+
+    const fetchClientCalendar = async () => {
+        if (!user || !selectedClient) return;
+        setLoading(true);
+        try {
+            const res = await tlApi.getCalendar(selectedClient, format(currentMonth, 'yyyy-MM'), user.id);
+            setCalendarData(res.data);
+        } catch (err) { 
+            console.error('Error fetching calendar:', err);
+        } finally { 
+            setLoading(false); 
+        }
+    };
+
+
+    const fetchMasterCalendar = async () => {
+        if (!user) return;
+        setLoading(true);
+        try {
+            const res = await tlApi.getMasterCalendar(format(currentMonth, 'yyyy-MM'), user.id);
+            setCalendarData(res.data);
+        } catch (err) { console.error(err); } finally { setLoading(false); }
+    };
+
+    const handlePrev = () => setCurrentMonth(subMonths(currentMonth, 1));
+    const handleNext = () => setCurrentMonth(addMonths(currentMonth, 1));
+
+    const handleItemClick = async (item: ContentItem) => {
+        try {
+            const res = await gmApi.getContentDetails(item.id);
+            setActiveItem(res.data);
+            setIsDetailsOpen(true);
+        } catch (err) { console.error(err); }
+    };
+
+    const handleStatusUpdate = async (newStatus: string) => {
+        try {
+            // Get the current authenticated user ID directly to ensure it's not null
+            const { data: { user: authUser } } = await supabase.auth.getUser();
+            const actorId = authUser?.id || profile?.user_id || user?.user_id;
+            
+            console.log('Updating status:', { newStatus, note: statusNote, actorId });
+            
+            // Pass the note - ensure it's not just an empty string if we want it to be recognized as 'null' in DB
+            await gmApi.updateStatus(activeItem.item.id, newStatus, statusNote.trim() || undefined, actorId);
+            
+            setStatusNote(''); // Clear note after success
+            const res = await gmApi.getContentDetails(activeItem.item.id);
+
+            setActiveItem(res.data);
+            if (isMasterMode) fetchMasterCalendar(); else fetchClientCalendar();
+        } catch (err: any) {
+            console.error('Status update error:', err);
+            alert(err.response?.data?.error || 'Failed to update status');
+        }
+    };
 
     const handleLogout = async () => {
         await supabase.auth.signOut();
-        router.push('/login');
+        window.location.href = '/login';
     };
+
+    const days = eachDayOfInterval({
+        start: startOfWeek(startOfMonth(currentMonth), { weekStartsOn: 1 }),
+        end: endOfWeek(endOfMonth(currentMonth), { weekStartsOn: 1 })
+    });
+
+    const filteredClients = clients.filter(c => 
+        c.company_name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     return (
         <div className="dashboard-container">
-            {/* Sidebar */}
+            {/* Sidebar - Using Admin Sidebar Style */}
             <aside className="sidebar">
                 <div className="logo-container">
-                    <img src="/logo.png" alt="TrueUp Media" className="logo-img" />
-                    <span style={{ marginLeft: '4px', color: 'var(--text-muted)', fontSize: '12px', fontWeight: 600 }}>TL</span>
+                    <div className="logo-icon">T</div>
+                    <span>TrueUp Media</span>
                 </div>
 
                 <nav className="flex-1">
                     <p className="sidebar-label">Navigation</p>
                     <div 
-                        onClick={() => setView('assigned')}
-                        className={`nav-item ${view === 'assigned' ? 'active' : ''}`}
+                        onClick={() => setView('client')}
+                        className={`nav-item ${view === 'client' ? 'active' : ''}`}
                     >
-                        <LayoutDashboard size={20} />
-                        <span>Assigned Content</span>
+                        <LayoutDashboard size={18} />
+                        <span>Client Dashboards</span>
                     </div>
                     <div 
-                        onClick={() => setView('workflow')}
-                        className={`nav-item ${view === 'workflow' ? 'active' : ''}`}
+                        onClick={() => setView('master')}
+                        className={`nav-item ${view === 'master' ? 'active' : ''}`}
                     >
-                        <Globe size={20} />
-                        <span>Workflow Status</span>
+                        <Globe size={18} />
+                        <span>Master Calendar</span>
                     </div>
 
-                    <p className="sidebar-label">My Clients</p>
-                    <div className="client-list">
-                        {clients.map(c => (
-                            <div key={c.id} className="client-item">
-                                <div className="client-avatar">
-                                    {c.company_name.charAt(0)}
-                                </div>
-                                <span>{c.company_name}</span>
+                    {view === 'client' && (
+                        <>
+                            <p className="sidebar-label">Your Clients</p>
+                            <div className="search-input-box" style={{ width: '100%', marginBottom: '12px' }}>
+                                <Search size={14} className="search-icon" />
+                                <input 
+                                    type="text" 
+                                    placeholder="Search clients..." 
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    style={{ padding: '8px 12px 8px 36px', fontSize: '12px' }}
+                                />
                             </div>
-                        ))}
-                    </div>
+                            <div className="client-list-sidebar" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                {filteredClients.length === 0 && (
+                                    <p style={{ fontSize: 11, color: '#94a3b8', padding: '8px 12px', textAlign: 'center' }}>No clients found</p>
+                                )}
+                                {filteredClients.map(c => (
+                                    <div 
+                                        key={c.id}
+                                        onClick={() => setSelectedClient(c.id)}
+                                        className={`nav-item ${selectedClient === c.id ? 'active' : ''}`}
+                                        style={{ padding: '8px 12px', fontSize: '13px' }}
+                                    >
+                                        <div style={{ 
+                                            width: '24px', 
+                                            height: '24px', 
+                                            borderRadius: '6px', 
+                                            background: selectedClient === c.id ? '#4f46e5' : '#f1f5f9',
+                                            color: selectedClient === c.id ? 'white' : '#64748b',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '10px',
+                                            fontWeight: 800
+                                        }}>
+                                            {c.company_name?.charAt(0) || '?'}
+                                        </div>
+                                        <span className="truncate">{c.company_name}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </>
+                    )}
                 </nav>
 
                 <div className="sidebar-footer">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                        <p className="sidebar-label" style={{ margin: 0 }}>Appearance</p>
-                        <ThemeToggle style={{ width: '32px', height: '32px', borderRadius: '8px' }} />
-                    </div>
                     <div className="user-info-box">
-                        <div className="user-avatar" style={{ background: 'var(--accent)', color: 'white' }}>TL</div>
+                        <div className="user-avatar">
+                            <Users size={20} />
+                        </div>
                         <div>
-                            <p className="user-name">Team Lead</p>
-                            <p className="user-role">TrueUp Media</p>
+                            <p className="user-name">{user?.user_metadata?.name || 'Team Lead'}</p>
+                            <p className="user-role">{user?.user_metadata?.role_identifier || 'TL'}</p>
                         </div>
                     </div>
-                    <button onClick={handleLogout} className="logout-btn">
-                        <LogOut size={16} /> Logout
+                    <button className="logout-btn" onClick={handleLogout}>
+                        <LogOut size={16} />
+                        Logout
                     </button>
                 </div>
             </aside>
@@ -99,43 +288,224 @@ export default function TLDashboard() {
                 <header className="page-header">
                     <div>
                         <h1 className="page-title">
-                            {view === 'assigned' ? 'Assigned Content' : 'Workflow Status'}
+                            {view === 'master' ? 'Master Calendar' : 'Client Dashboard'}
                         </h1>
                         <p className="page-subtitle">
-                            {view === 'assigned' ? 'Manage your upcoming content deliveries' : 'Track and advance content states'}
+                            {view === 'master' 
+                                ? 'Unified view of all assigned client schedules' 
+                                : `Managing content for ${clients.find(c => c.id === selectedClient)?.company_name || 'Client'}`
+                            }
                         </p>
+                    </div>
+
+                    <div className="header-controls">
+                        <div className="month-nav">
+                            <button onClick={handlePrev} className="month-btn"><ChevronLeft size={18}/></button>
+                            <span className="month-label">
+                                {format(currentMonth, 'MMMM yyyy')}
+                            </span>
+                            <button onClick={handleNext} className="month-btn"><ChevronRight size={18}/></button>
+                        </div>
                     </div>
                 </header>
 
-                <div className="calendar-card" style={{ padding: '24px' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
-                        {contentItems.map(item => (
-                            <div key={item.id} style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: '16px', padding: '20px' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                                    <div>
-                                        <span className={`type-badge ${item.type.toLowerCase()}`} style={{ marginBottom: '8px', display: 'inline-block' }}>{item.type}</span>
-                                        <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)' }}>{item.title}</h3>
-                                    </div>
-                                    <div style={{ background: 'var(--bg-surface)', padding: '8px', borderRadius: '10px' }}>
-                                        {item.type === 'Post' ? <FileText size={18} style={{ color: 'var(--accent)' }}/> : <Video size={18} style={{ color: 'var(--accent)' }}/>}
-                                    </div>
-                                </div>
-                                
-                                <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--text-secondary)' }}>
-                                        <Clock size={14} /> {item.time}
-                                    </div>
-                                </div>
+                {loading && <div className="loading-bar">Updating schedule...</div>}
 
-                                <div style={{ background: 'rgba(99, 102, 241, 0.05)', padding: '12px', borderRadius: '10px', border: '1px solid rgba(99, 102, 241, 0.1)' }}>
-                                    <p style={{ fontSize: '10px', fontWeight: 700, color: 'var(--accent)', textTransform: 'uppercase', marginBottom: '4px' }}>Current Status</p>
-                                    <p style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)' }}>{item.status}</p>
-                                </div>
-                            </div>
+                <div className="calendar-card">
+                    <div className="calendar-grid">
+                        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                            <div key={day} className="calendar-header-cell">{day}</div>
                         ))}
+
+                        {days.map((day, idx) => {
+                            const dayContent = calendarData.filter(item => {
+                                const itemDate = parseISO(item.scheduled_datetime);
+                                return isSameDay(itemDate, day);
+                            });
+                            return (
+                                <div 
+                                    key={idx} 
+                                    className={`calendar-day ${!isSameMonth(day, currentMonth) ? 'other-month' : ''} ${isSameDay(day, new Date()) ? 'today' : ''}`}
+                                >
+                                    <span className="day-number">{format(day, 'd')}</span>
+                                    <div className="day-items">
+                                        {dayContent.map(item => (
+                                            <div 
+                                                key={item.id}
+                                                onClick={(e) => { e.stopPropagation(); handleItemClick(item); }}
+                                                className={`content-item ${item.content_type.toLowerCase()}`}
+                                                title={item.title}
+                                            >
+                                                {item.content_type === 'Post' ? <FileText size={10}/> : <Video size={10}/>}
+                                                <span className="truncate" style={{ fontSize: '9px' }}>
+                                                    {view === 'master' ? `[${item.clients?.company_name?.substring(0,3)}] ` : ''}
+                                                    {item.title}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             </main>
+
+            {/* Details Modal */}
+            {isDetailsOpen && activeItem && (
+                <div className="modal-overlay" onClick={() => setIsDetailsOpen(false)}>
+                    <div className="modal-content modal-lg" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                                    <span className={`type-badge ${activeItem.item.content_type.toLowerCase()}`}>
+                                        {activeItem.item.content_type}
+                                    </span>
+                                    <span style={{ fontSize: '12px', color: '#94a3b8' }}>•</span>
+                                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b' }}>{activeItem.item.clients?.company_name}</span>
+                                </div>
+                                <h3 className="modal-title">{activeItem.item.title}</h3>
+                            </div>
+                            <button onClick={() => setIsDetailsOpen(false)} className="btn-icon"><X size={20}/></button>
+                        </div>
+
+                        <div className="detail-grid">
+                            <div className="detail-info">
+                                <div style={{ marginBottom: '24px' }}>
+                                    <label className="detail-label">Description</label>
+                                    <p className="detail-text">{activeItem.item.description || 'No description provided.'}</p>
+                                </div>
+                                <div style={{ display: 'flex', gap: '24px' }}>
+                                    <div>
+                                        <label className="detail-label">Scheduled Date</label>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', color: '#1e293b', fontWeight: 600 }}>
+                                            <CalendarIcon size={14} color="#94a3b8"/>
+                                            {format(parseISO(activeItem.item.scheduled_datetime), 'MMM d, yyyy')}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="detail-label">Time</label>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', color: '#1e293b', fontWeight: 600 }}>
+                                            <Clock size={14} color="#94a3b8"/>
+                                            {format(parseISO(activeItem.item.scheduled_datetime), 'hh:mm a')}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="detail-workflow" style={{ background: '#f8fafc', padding: '24px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+                                <label className="detail-label">Workflow Progress</label>
+                                <div style={{ marginTop: '16px' }}>
+                                    {(() => {
+                                        const flows: any = {
+                                            'Reel': ['CONTENT READY', 'SHOOT DONE', 'EDITING IN PROGRESS', 'EDITED', 'WAITING FOR APPROVAL', 'APPROVED', 'POSTED'],
+                                            'Post': ['CONTENT APPROVED', 'DESIGNING IN PROGRESS', 'DESIGNING COMPLETED', 'WAITING FOR APPROVAL', 'APPROVED']
+                                        };
+                                        const flow = flows[activeItem.item.content_type];
+                                        const currentIdx = flow.indexOf(activeItem.item.status);
+                                        const nextStatus = flow[currentIdx + 1];
+
+                                        return (
+                                            <>
+                                                <div style={{ marginBottom: '20px' }}>
+                                                    <p style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Current Status</p>
+                                                    <p style={{ fontSize: '18px', fontWeight: 800, color: '#4f46e5' }}>{activeItem.item.status}</p>
+                                                </div>
+                                                {nextStatus && (
+                                                    <div style={{ marginBottom: '16px' }}>
+                                                        <label className="detail-label" style={{ marginBottom: '8px', display: 'block' }}>Add a Note (Optional)</label>
+                                                        <textarea 
+                                                            value={statusNote}
+                                                            onChange={(e) => setStatusNote(e.target.value)}
+                                                            placeholder="e.g., Finished the first draft..."
+                                                            style={{ 
+                                                                width: '100%', 
+                                                                padding: '12px', 
+                                                                borderRadius: '10px', 
+                                                                border: '1px solid #e2e8f0',
+                                                                fontSize: '13px',
+                                                                resize: 'none',
+                                                                height: '80px',
+                                                                background: 'white'
+                                                            }}
+                                                        />
+                                                    </div>
+                                                )}
+                                                {nextStatus ? (
+                                                    <button 
+                                                        onClick={() => handleStatusUpdate(nextStatus)}
+                                                        className="btn-add"
+                                                        style={{ width: '100%', justifyContent: 'center', padding: '12px' }}
+                                                    >
+                                                        <span>Advance to {nextStatus}</span>
+                                                        <ArrowRight size={18}/>
+                                                    </button>
+                                                ) : (
+                                                    <div style={{ 
+                                                        background: '#ecfdf5', 
+                                                        color: '#059669', 
+                                                        padding: '12px', 
+                                                        borderRadius: '10px', 
+                                                        display: 'flex', 
+                                                        alignItems: 'center', 
+                                                        justifyContent: 'center', 
+                                                        gap: '8px',
+                                                        fontWeight: 700,
+                                                        fontSize: '14px'
+                                                    }}>
+                                                        <CheckCircle2 size={18}/>
+                                                        Workflow Completed
+                                                    </div>
+                                                )}
+                                            </>
+                                        );
+                                    })()}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style={{ marginTop: '32px', borderTop: '1px solid #f1f5f9', paddingTop: '24px' }}>
+                            <label className="detail-label">Activity Log</label>
+                            <div className="log-list" style={{ marginTop: '12px' }}>
+                                {activeItem.history.length === 0 && (
+                                    <p style={{ color: '#94a3b8', fontSize: '13px', fontStyle: 'italic' }}>No activity logs found.</p>
+                                )}
+                                {activeItem.history.map((log: any) => (
+                                    <div key={log.log_id} className="log-entry" style={{ padding: '12px 0', borderBottom: '1px solid #f1f5f9' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#4f46e5' }}></div>
+                                                <span style={{ fontWeight: 700, color: '#1e293b', fontSize: '13px' }}>{log.new_status}</span>
+                                            </div>
+                                            <span style={{ color: '#94a3b8', fontWeight: 500, fontSize: '11px' }}>{format(parseISO(log.changed_at), 'MMM d, HH:mm')}</span>
+                                        </div>
+                                        <div style={{ paddingLeft: '14px' }}>
+                                            <p style={{ fontSize: '12px', color: '#64748b', fontWeight: 500 }}>
+                                                {log.users?.role_identifier ? `Done by ${log.users.role_identifier}` : 
+                                                 log.users?.name ? `Done by ${log.users.name}` : 'Status updated'}
+                                            </p>
+                                            {log.note && (
+                                                <div style={{ 
+                                                    marginTop: '6px', 
+                                                    padding: '8px 12px', 
+                                                    background: 'white', 
+                                                    borderRadius: '8px', 
+                                                    border: '1px solid #e2e8f0',
+                                                    fontSize: '12px',
+                                                    color: '#334155',
+                                                    fontStyle: 'italic'
+                                                }}>
+                                                    "{log.note}"
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

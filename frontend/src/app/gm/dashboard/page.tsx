@@ -77,7 +77,9 @@ export default function GMDashboard() {
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [editingItem, setEditingItem] = useState<ContentItem | null>(null);
     const [activeItem, setActiveItem] = useState<any>(null);
-
+    const [statusNote, setStatusNote] = useState('');
+    const [user, setUser] = useState<any>(null);
+    
     const isMasterMode = view === 'master';
 
     const [formData, setFormData] = useState({
@@ -89,6 +91,8 @@ export default function GMDashboard() {
 
     useEffect(() => {
         fetchClients();
+        const savedUser = localStorage.getItem('user');
+        if (savedUser) setUser(JSON.parse(savedUser));
     }, []);
 
     useEffect(() => {
@@ -215,11 +219,21 @@ export default function GMDashboard() {
     const handleStatusUpdate = async (newStatus: string) => {
         if (!activeItem) return;
         try {
-            await gmApi.updateStatus(activeItem.item.id, newStatus);
+            // Get the current authenticated user ID directly to ensure it's not null
+            const { data: { user: authUser } } = await supabase.auth.getUser();
+            const actorId = authUser?.id || user?.user_id;
+            
+            console.log('Updating status (GM):', { newStatus, note: statusNote, actorId });
+            
+            // Pass the note - ensure it's trimmed and not just empty
+            await gmApi.updateStatus(activeItem.item.id, newStatus, statusNote.trim() || undefined, actorId);
+            
             const res = await gmApi.getContentDetails(activeItem.item.id);
             setActiveItem(res.data);
+            setStatusNote(''); // Clear note after update
             if (isMasterMode) fetchMasterCalendar(); else fetchClientCalendar();
         } catch (err: any) {
+            console.error('Status update error (GM):', err);
             alert(err.response?.data?.error || 'Failed to update status');
         }
     };
@@ -811,43 +825,84 @@ export default function GMDashboard() {
                                     </div>
                                 </div>
                             </div>
+                            <div className="detail-workflow">
+                                <label className="detail-label">Workflow Status</label>
+                                <div className="workflow-content">
+                                    {(() => {
+                                        const flows: any = {
+                                            'Reel': ['CONTENT READY', 'SHOOT DONE', 'EDITING IN PROGRESS', 'EDITED', 'WAITING FOR APPROVAL', 'APPROVED', 'POSTED'],
+                                            'Post': ['CONTENT APPROVED', 'DESIGNING IN PROGRESS', 'DESIGNING COMPLETED', 'WAITING FOR APPROVAL', 'APPROVED']
+                                        };
+                                        const flow = flows[activeItem.item.content_type];
+                                        const currentIdx = flow.indexOf(activeItem.item.status);
+                                        const nextStatus = flow[currentIdx + 1];
 
-                            <div className="detail-sidebar">
-                                <label className="detail-label">Current Status</label>
-                                <div className={`status-current ${activeItem.item.status.toLowerCase().replace(' ', '-')}`}>
-                                    {activeItem.item.status === 'Completed' ? <CheckCircle2 size={18} /> : <Clock size={18} />}
-                                    <span>{activeItem.item.status}</span>
+                                        return (
+                                            <>
+                                                <div className="status-current">
+                                                    <p className="status-label">Current</p>
+                                                    <p className="status-value">{activeItem.item.status}</p>
+                                                </div>
+                                                {nextStatus && (
+                                                    <div className="advance-section">
+                                                        <div className="note-input-container">
+                                                            <label className="detail-label">Add a note (optional)</label>
+                                                            <textarea
+                                                                className="status-note-textarea"
+                                                                placeholder="Explain what was done in this stage..."
+                                                                value={statusNote}
+                                                                onChange={(e) => setStatusNote(e.target.value)}
+                                                            />
+                                                        </div>
+                                                        <button
+                                                            onClick={() => handleStatusUpdate(nextStatus)}
+                                                            className="btn-advance"
+                                                        >
+                                                            <span>Advance to {nextStatus}</span>
+                                                            <ArrowRight size={18} className="advance-arrow"/>
+                                                        </button>
+                                                    </div>
+                                                )}
+                                                {!nextStatus && (
+                                                    <div className="workflow-done">
+                                                        <CheckCircle2 size={18}/>
+                                                        Workflow Completed
+                                                    </div>
+                                                )}
+                                            </>
+                                        );
+                                    })()}
                                 </div>
 
-                                <div className="status-workflow" style={{ marginTop: '24px' }}>
-                                    <label className="detail-label">Update Pipeline</label>
-                                    <div className="status-btns">
-                                        {['Pending', 'In Progress', 'Under Review', 'Revision Needed', 'Completed'].map(status => (
-                                            <button
-                                                key={status}
-                                                className={`status-btn-option ${activeItem.item.status === status ? 'active' : ''}`}
-                                                onClick={() => handleStatusUpdate(status)}
-                                            >
-                                                {status}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
                             </div>
                         </div>
 
-                        <div className="detail-footer" style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid var(--border)' }}>
-                            <div className="history-log">
-                                <label className="detail-label">Audit Log</label>
-                                <div className="log-list">
-                                    {activeItem.logs?.map((log: any) => (
-                                        <div key={log.id} className="log-entry">
-                                            <span className="log-status">{log.new_status}</span>
-                                            <span className="log-time">{format(parseISO(log.created_at), 'MMM d, p')}</span>
+                        <div className="activity-log">
+                            <label className="detail-label">Activity Log</label>
+                            <div className="log-list">
+                                {activeItem.history.length === 0 && (
+                                    <p className="log-empty">No activity yet</p>
+                                )}
+                                {activeItem.history.map((log: any) => (
+                                    <div key={log.log_id} className="log-entry">
+                                        <div className="log-main">
+                                            <div className="log-status">
+                                                <div className="log-dot"></div>
+                                                <span>{log.new_status}</span>
+                                            </div>
+                                            <span className="log-user">
+                                                {log.users?.role_identifier ? `Done by ${log.users.role_identifier}` :
+                                                 log.users?.name ? `Done by ${log.users.name}` : 'Status updated'}
+                                            </span>
+                                            <span className="log-time">{format(parseISO(log.changed_at), 'MMM d, HH:mm')}</span>
                                         </div>
-                                    ))}
-                                    {activeItem.logs?.length === 0 && <p className="empty-log">No status changes yet.</p>}
-                                </div>
+                                        {log.note && (
+                                            <div className="log-note">
+                                                "{log.note}"
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     </div>
