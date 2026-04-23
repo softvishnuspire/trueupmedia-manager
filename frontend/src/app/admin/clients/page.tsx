@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { adminApi } from '@/lib/api';
-import { Plus, Search, Edit2, Trash2, X } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, X, Calendar as CalendarIcon } from 'lucide-react';
 
 interface Client {
   id: string;
@@ -143,6 +144,9 @@ export default function ClientManagement() {
                   <td>{new Date(client.created_at).toLocaleDateString()}</td>
                   <td style={{ textAlign: 'right' }}>
                     <div className="action-btns" style={{ justifyContent: 'flex-end' }}>
+                      <Link href={`/admin/client-calendar/${client.id}`} className="btn-icon">
+                        <CalendarIcon size={14} />
+                      </Link>
                       <button className="btn-icon" onClick={() => handleEditClick(client)}>
                         <Edit2 size={14} />
                       </button>
