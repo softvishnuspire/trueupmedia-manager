@@ -23,6 +23,33 @@
     transition: all 0.3s ease;
 }
 
+.sidebar-nav {
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin: 0 -16px;
+    padding: 0 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Premium Slim Scrollbar */
+.sidebar-nav::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 10px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
+
 .logo-container {
     display: flex;
     align-items: center;

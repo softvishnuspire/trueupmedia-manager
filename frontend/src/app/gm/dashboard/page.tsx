@@ -285,7 +285,7 @@ export default function GMDashboard() {
                     <span style={{ marginLeft: '4px', color: 'var(--text-muted)', fontSize: '12px', fontWeight: 600 }}>GM</span>
                 </div>
 
-                <nav className="flex-1">
+                <nav className="flex-1 sidebar-nav">
                     <p className="sidebar-label">Navigation</p>
                     <div 
                         onClick={() => setView('dashboard')}
