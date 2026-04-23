@@ -67,6 +67,7 @@ export default function AdminLayout({
       <button 
         className="mobile-menu-toggle" 
         onClick={() => setSidebarOpen(true)}
+        style={{ display: sidebarOpen ? 'none' : 'flex' }}
       >
         <Menu size={24} />
       </button>

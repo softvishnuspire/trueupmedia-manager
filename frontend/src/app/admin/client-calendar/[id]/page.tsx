@@ -134,7 +134,7 @@ export default function ClientCalendarPage() {
         <div>
             <header className="page-header">
                 <div className="header-content">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <button onClick={() => router.back()} className="btn-icon">
                             <ArrowLeft size={18} />
                         </button>
