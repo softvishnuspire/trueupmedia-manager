@@ -53,12 +53,18 @@ const authenticateUser = async (req, res, next) => {
     const { data: { user }, error } = await supabase.auth.getUser(token);
     
     if (error || !user) {
+        console.error('❌ Auth Error:', error?.message || 'User not found');
         return res.status(401).json({ error: 'Unauthorized: Invalid token' });
     }
     
+    console.log(`✅ Auth Success: ${user.email} (${req.method} ${req.url})`);
     req.user = user;
     next();
 };
+
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok', time: new Date().toISOString() });
+});
 
 app.use('/api', authenticateUser);
 
