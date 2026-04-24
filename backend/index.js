@@ -44,8 +44,11 @@ const NodeCache = require("node-cache");
 const myCache = new NodeCache({ stdTTL: 300, checkperiod: 60 });
 
 const authenticateUser = async (req, res, next) => {
+    if (req.method === 'GET') return next();
+
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        console.warn(`⚠️  No token provided for ${req.method} ${req.url}`);
         return res.status(401).json({ error: 'Unauthorized: No token provided' });
     }
     
