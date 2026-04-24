@@ -79,7 +79,7 @@ export default function GMDashboard() {
     const [activeItem, setActiveItem] = useState<any>(null);
     const [statusNote, setStatusNote] = useState('');
     const [user, setUser] = useState<any>(null);
-    
+
     const isMasterMode = view === 'master';
 
     const [formData, setFormData] = useState({
@@ -165,7 +165,7 @@ export default function GMDashboard() {
             // Fetch master calendar for the current month to get throughput and status breakdown
             const res = await gmApi.getMasterCalendar(format(new Date(), 'yyyy-MM'));
             const data = res.data as ContentItem[];
-            
+
             const breakdown = data.reduce((acc: any, item) => {
                 acc[item.status] = (acc[item.status] || 0) + 1;
                 return acc;
@@ -222,12 +222,12 @@ export default function GMDashboard() {
             // Get the current authenticated user ID directly to ensure it's not null
             const { data: { user: authUser } } = await supabase.auth.getUser();
             const actorId = authUser?.id || user?.user_id;
-            
+
             console.log('Updating status (GM):', { newStatus, note: statusNote, actorId });
-            
+
             // Pass the note - ensure it's trimmed and not just empty
             await gmApi.updateStatus(activeItem.item.id, newStatus, statusNote.trim() || undefined, actorId);
-            
+
             const res = await gmApi.getContentDetails(activeItem.item.id);
             setActiveItem(res.data);
             setStatusNote(''); // Clear note after update
@@ -249,7 +249,7 @@ export default function GMDashboard() {
 
     const handleLogout = async () => {
         await supabase.auth.signOut();
-        router.push('/');
+        router.push('/login');
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -280,21 +280,26 @@ export default function GMDashboard() {
 
             {/* Sidebar */}
             <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
-                <div className="logo-container">
-                    <img src="/logo.png" alt="TrueUp Media" className="logo-img" />
-                    <span style={{ marginLeft: '4px', color: 'var(--text-muted)', fontSize: '12px', fontWeight: 600 }}>GM</span>
+                <div className="logo-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <img src="/logo.png" alt="TrueUp Media" className="logo-img" />
+                        <span style={{ marginLeft: '4px', color: 'var(--text-muted)', fontSize: '12px', fontWeight: 600 }}>GM</span>
+                    </div>
+                    <button onClick={() => setIsSidebarOpen(false)} className="sidebar-close" style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                        <X size={24} />
+                    </button>
                 </div>
 
                 <nav className="flex-1 sidebar-nav">
                     <p className="sidebar-label">Navigation</p>
-                    <div 
+                    <div
                         onClick={() => setView('dashboard')}
                         className={`nav-item ${view === 'dashboard' ? 'active' : ''}`}
                     >
                         <LayoutDashboard size={20} />
                         <span>Dashboard Overview</span>
                     </div>
-                    <div 
+                    <div
                         onClick={() => setView('client')}
                         className={`nav-item ${view === 'client' ? 'active' : ''}`}
                     >
@@ -360,109 +365,111 @@ export default function GMDashboard() {
 
             {/* Main Content */}
             <main className="main-content">
+                {/* Mobile Header Top */}
+                <div className="mobile-header-top">
+                    <div className="menu-toggle" onClick={() => setIsSidebarOpen(true)}>
+                        <Menu size={24} />
+                    </div>
+                    <img src="/logo.png" alt="TrueUp Media" className="mobile-logo-img" />
+                    <div style={{ width: '40px' }}></div> {/* Spacer */}
+                </div>
+
                 <header className="page-header">
-                    <div className="mobile-header-top">
-                        <button className="menu-toggle" onClick={() => setIsSidebarOpen(true)}>
-                            <Menu size={20} />
-                        </button>
-                        <img src="/logo.png" alt="TrueUp" className="mobile-logo-img" />
-                        <div style={{ width: '40px' }}></div>
-                    </div>
                     <div className="header-content">
-                    <div className="header-info">
-                        <h1 className="page-title">
-                            {view === 'dashboard' && 'Dashboard Overview'}
-                            {view === 'client' && 'Client Calendar'}
-                            {view === 'master' && 'Master Calendar'}
-                            {view === 'teams' && 'Team Management'}
-                        </h1>
-                        <p className="page-subtitle">
-                            {view === 'dashboard' && 'Monitor operational health and pipeline metrics'}
-                            {view === 'client' && 'Detailed content planning for individual clients'}
-                            {view === 'master' && 'Review and manage content production flow'}
-                            {view === 'teams' && 'Assign clients and manage team lead performance'}
-                        </p>
-                    </div>
+                        <div className="header-info">
+                            <h1 className="page-title">
+                                {view === 'dashboard' && 'Dashboard Overview'}
+                                {view === 'client' && 'Client Calendar'}
+                                {view === 'master' && 'Master Calendar'}
+                                {view === 'teams' && 'Team Management'}
+                            </h1>
+                            <p className="page-subtitle">
+                                {view === 'dashboard' && 'Monitor operational health and pipeline metrics'}
+                                {view === 'client' && 'Detailed content planning for individual clients'}
+                                {view === 'master' && 'Review and manage content production flow'}
+                                {view === 'teams' && 'Assign clients and manage team lead performance'}
+                            </p>
+                        </div>
 
-                    <div className="header-controls">
-                        {view === 'client' && (
-                            <div className="client-dropdown-wrapper">
-                                <select
-                                    className="client-dropdown"
-                                    value={selectedClient}
-                                    onChange={(e) => setSelectedClient(e.target.value)}
-                                >
-                                    <option value="all" disabled={selectedClient !== 'all'}>Select a client</option>
-                                    {clients.map(c => (
-                                        <option key={c.id} value={c.id}>{c.company_name}</option>
-                                    ))}
-                                </select>
-                                <ChevronDown size={16} className="dropdown-chevron" />
-                            </div>
-                        )}
-
-                        {view === 'master' && (
-                            <div className="master-filters-container">
-                                <div className="filter-icon-box">
-                                    <Filter size={14} />
-                                </div>
+                        <div className="header-controls">
+                            {view === 'client' && (
                                 <div className="client-dropdown-wrapper">
                                     <select
                                         className="client-dropdown"
                                         value={selectedClient}
                                         onChange={(e) => setSelectedClient(e.target.value)}
                                     >
-                                        <option value="all">All Clients</option>
+                                        <option value="all" disabled={selectedClient !== 'all'}>Select a client</option>
                                         {clients.map(c => (
                                             <option key={c.id} value={c.id}>{c.company_name}</option>
                                         ))}
                                     </select>
-                                    <ChevronDown size={14} className="dropdown-chevron" />
+                                    <ChevronDown size={16} className="dropdown-chevron" />
                                 </div>
-                                <div className="filter-divider"></div>
-                                <div className="client-dropdown-wrapper">
-                                    <select
-                                        className="client-dropdown"
-                                        value={selectedType}
-                                        onChange={(e) => setSelectedType(e.target.value)}
-                                    >
-                                        <option value="all">All Types</option>
-                                        <option value="Post">Posts</option>
-                                        <option value="Reel">Reels</option>
-                                    </select>
-                                    <ChevronDown size={14} className="dropdown-chevron" />
-                                </div>
-                            </div>
-                        )}
+                            )}
 
-                        {view !== 'teams' && view !== 'dashboard' && (
-                            <>
-                                <div className="view-mode-toggle">
-                                    <button
-                                        onClick={() => setViewMode('month')}
-                                        className={`view-mode-btn ${viewMode === 'month' ? 'active' : ''}`}
-                                    >Month</button>
-                                    <button
-                                        onClick={() => setViewMode('week')}
-                                        className={`view-mode-btn ${viewMode === 'week' ? 'active' : ''}`}
-                                    >Week</button>
+                            {view === 'master' && (
+                                <div className="master-filters-container">
+                                    <div className="filter-icon-box">
+                                        <Filter size={14} />
+                                    </div>
+                                    <div className="client-dropdown-wrapper">
+                                        <select
+                                            className="client-dropdown"
+                                            value={selectedClient}
+                                            onChange={(e) => setSelectedClient(e.target.value)}
+                                        >
+                                            <option value="all">All Clients</option>
+                                            {clients.map(c => (
+                                                <option key={c.id} value={c.id}>{c.company_name}</option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown size={14} className="dropdown-chevron" />
+                                    </div>
+                                    <div className="filter-divider"></div>
+                                    <div className="client-dropdown-wrapper">
+                                        <select
+                                            className="client-dropdown"
+                                            value={selectedType}
+                                            onChange={(e) => setSelectedType(e.target.value)}
+                                        >
+                                            <option value="all">All Types</option>
+                                            <option value="Post">Posts</option>
+                                            <option value="Reel">Reels</option>
+                                        </select>
+                                        <ChevronDown size={14} className="dropdown-chevron" />
+                                    </div>
                                 </div>
+                            )}
 
-                                <div className="month-nav">
-                                    <button onClick={handlePrev} className="month-btn"><ChevronLeft size={20} /></button>
-                                    <span className="month-label">
-                                        {viewMode === 'month'
-                                            ? format(currentMonth, 'MMMM yyyy')
-                                            : `Week of ${format(startOfWeek(currentMonth, { weekStartsOn: 1 }), 'MMM d')}`
-                                        }
-                                    </span>
-                                    <button onClick={handleNext} className="month-btn"><ChevronRight size={20} /></button>
-                                </div>
-                            </>
-                        )}
+                            {view !== 'teams' && view !== 'dashboard' && (
+                                <>
+                                    <div className="view-mode-toggle">
+                                        <button
+                                            onClick={() => setViewMode('month')}
+                                            className={`view-mode-btn ${viewMode === 'month' ? 'active' : ''}`}
+                                        >Month</button>
+                                        <button
+                                            onClick={() => setViewMode('week')}
+                                            className={`view-mode-btn ${viewMode === 'week' ? 'active' : ''}`}
+                                        >Week</button>
+                                    </div>
+
+                                    <div className="month-nav">
+                                        <button onClick={handlePrev} className="month-btn"><ChevronLeft size={20} /></button>
+                                        <span className="month-label">
+                                            {viewMode === 'month'
+                                                ? format(currentMonth, 'MMMM yyyy')
+                                                : `Week of ${format(startOfWeek(currentMonth, { weekStartsOn: 1 }), 'MMM d')}`
+                                            }
+                                        </span>
+                                        <button onClick={handleNext} className="month-btn"><ChevronRight size={20} /></button>
+                                    </div>
+                                </>
+                            )}
+                        </div>
                     </div>
-                </div>
-            </header>
+                </header>
 
                 {loading && <div className="loading-bar">Loading...</div>}
 
@@ -529,7 +536,7 @@ export default function GMDashboard() {
                                 </div>
                                 <div className="quick-actions-list">
                                     <button onClick={() => setView('teams')} className="action-item">
-                                        <div className="action-icon" style={{ background: 'var(--bg-elevated)' }}><Users size={18}/></div>
+                                        <div className="action-icon" style={{ background: 'var(--bg-elevated)' }}><Users size={18} /></div>
                                         <div className="action-text">
                                             <p className="action-title">Manage Teams</p>
                                             <p className="action-desc">Assign clients to team leads</p>
@@ -537,7 +544,7 @@ export default function GMDashboard() {
                                         <ChevronRight size={16} />
                                     </button>
                                     <button onClick={() => setView('master')} className="action-item">
-                                        <div className="action-icon" style={{ background: 'var(--bg-elevated)' }}><Globe size={18}/></div>
+                                        <div className="action-icon" style={{ background: 'var(--bg-elevated)' }}><Globe size={18} /></div>
                                         <div className="action-text">
                                             <p className="action-title">Master Calendar</p>
                                             <p className="action-desc">View company-wide schedule</p>
@@ -694,7 +701,7 @@ export default function GMDashboard() {
                                         </div>
                                         <div className="mobile-day-indicators">
                                             {dayContent.map(item => (
-                                                <div 
+                                                <div
                                                     key={item.id}
                                                     className={`mobile-dot ${item.content_type.toLowerCase()}`}
                                                 ></div>
@@ -752,26 +759,26 @@ export default function GMDashboard() {
                     <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '340px' }}>
                         <div className="modal-header">
                             <h3 className="modal-title">{format(dailyAgenda.date, 'MMMM d, yyyy')}</h3>
-                            <button onClick={() => setDailyAgenda(null)} className="modal-close"><X size={20}/></button>
+                            <button onClick={() => setDailyAgenda(null)} className="modal-close"><X size={20} /></button>
                         </div>
                         <div className="agenda-list" style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                             {dailyAgenda.items.map(item => (
-                                <div 
-                                    key={item.id} 
+                                <div
+                                    key={item.id}
                                     className={`agenda-item ${item.content_type.toLowerCase()}`}
                                     onClick={() => {
                                         setDailyAgenda(null);
                                         handleItemClick(item);
                                     }}
-                                    style={{ 
-                                        padding: '12px', borderRadius: '10px', 
+                                    style={{
+                                        padding: '12px', borderRadius: '10px',
                                         background: 'var(--bg-elevated)', border: '1px solid var(--border)',
                                         display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer'
                                     }}
                                 >
-                                    <div style={{ 
-                                        width: '4px', height: '24px', borderRadius: '2px', 
-                                        background: item.content_type === 'Post' ? '#10b981' : '#6366f1' 
+                                    <div style={{
+                                        width: '4px', height: '24px', borderRadius: '2px',
+                                        background: item.content_type === 'Post' ? '#10b981' : '#6366f1'
                                     }}></div>
                                     <div style={{ flex: 1 }}>
                                         <p style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
@@ -859,13 +866,13 @@ export default function GMDashboard() {
                                                             className="btn-advance"
                                                         >
                                                             <span>Advance to {nextStatus}</span>
-                                                            <ArrowRight size={18} className="advance-arrow"/>
+                                                            <ArrowRight size={18} className="advance-arrow" />
                                                         </button>
                                                     </div>
                                                 )}
                                                 {!nextStatus && (
                                                     <div className="workflow-done">
-                                                        <CheckCircle2 size={18}/>
+                                                        <CheckCircle2 size={18} />
                                                         Workflow Completed
                                                     </div>
                                                 )}
@@ -892,7 +899,7 @@ export default function GMDashboard() {
                                             </div>
                                             <span className="log-user">
                                                 {log.users?.role_identifier ? `Done by ${log.users.role_identifier}` :
-                                                 log.users?.name ? `Done by ${log.users.name}` : 'Status updated'}
+                                                    log.users?.name ? `Done by ${log.users.name}` : 'Status updated'}
                                             </span>
                                             <span className="log-time">{format(parseISO(log.changed_at), 'MMM d, HH:mm')}</span>
                                         </div>

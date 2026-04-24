@@ -30,7 +30,8 @@ import {
     X,
     ArrowRight,
     Search,
-    LogOut
+    LogOut,
+    Menu
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { tlApi, gmApi } from '@/lib/api';
@@ -67,6 +68,7 @@ export default function TLDashboard() {
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
     const [activeItem, setActiveItem] = useState<any>(null);
     const [statusNote, setStatusNote] = useState('');
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
 
     const isMasterMode = view === 'master';
@@ -200,11 +202,21 @@ export default function TLDashboard() {
 
     return (
         <div className="dashboard-container">
+            {/* Mobile Sidebar Overlay */}
+            {isSidebarOpen && (
+                <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)}></div>
+            )}
+
             {/* Sidebar - Using Admin Sidebar Style */}
-            <aside className="sidebar">
-                <div className="logo-container">
-                    <div className="logo-icon">T</div>
-                    <span>TrueUp Media</span>
+            <aside className={`sidebar ${isSidebarOpen ? 'mobile-open' : ''}`}>
+                <div className="logo-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div className="logo-icon">T</div>
+                        <span>TrueUp Media</span>
+                    </div>
+                    <button onClick={() => setIsSidebarOpen(false)} className="sidebar-close">
+                        <X size={24} />
+                    </button>
                 </div>
 
                 <nav className="flex-1">
@@ -289,6 +301,14 @@ export default function TLDashboard() {
 
             {/* Main Content */}
             <main className="main-content">
+                <div className="mobile-header-top">
+                    <div className="menu-toggle" onClick={() => setIsSidebarOpen(true)}>
+                        <Menu size={24} />
+                    </div>
+                    <div style={{ fontWeight: 800, fontSize: '18px', color: 'var(--accent)' }}>TrueUp</div>
+                    <div style={{ width: '40px' }}></div>
+                </div>
+
                 <header className="page-header">
                     <div>
                         <h1 className="page-title">
@@ -366,7 +386,7 @@ export default function TLDashboard() {
                                         {activeItem.item.content_type}
                                     </span>
                                     <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>•</span>
-                                    <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)' }}>{activeItem.item.clients?.company_name}</span>
+                                    <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)' }}>{activeItem.item.clients?.company_name}</span>
                                 </div>
                                 <h3 className="modal-title">{activeItem.item.title}</h3>
                             </div>
