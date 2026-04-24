@@ -454,16 +454,40 @@ app.get('/api/gm/team-leads', async (req, res) => {
 // ─── Assign Client to Team Lead ───
 app.patch('/api/gm/clients/:id/assign', async (req, res) => {
     const { id } = req.params;
-    const { team_lead_id } = req.body;
+    let { team_lead_id } = req.body;
 
-    const { data, error } = await supabase
-        .from('clients')
-        .update({ team_lead_id })
-        .eq('id', id)
-        .select();
+    // Convert empty string to null for unassignment
+    if (team_lead_id === '') team_lead_id = null;
 
-    if (error) return res.status(500).json({ error: error.message });
-    res.json(data[0]);
+    try {
+        // Fetch current assignment to clear old lead's cache
+        const { data: currentClient } = await supabase
+            .from('clients')
+            .select('team_lead_id')
+            .eq('id', id)
+            .single();
+
+        const { data, error } = await supabase
+            .from('clients')
+            .update({ team_lead_id })
+            .eq('id', id)
+            .select();
+
+        if (error) return res.status(500).json({ error: error.message });
+
+        // Clear caches
+        if (currentClient?.team_lead_id) {
+            myCache.del(`tl_clients_${currentClient.team_lead_id}`);
+        }
+        if (team_lead_id) {
+            myCache.del(`tl_clients_${team_lead_id}`);
+        }
+        myCache.del(["gm_clients", "admin_clients"]);
+        
+        res.json(data[0]);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // ─── Get Clients for a Team Lead ───
