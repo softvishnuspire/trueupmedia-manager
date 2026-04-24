@@ -4,7 +4,7 @@ Content Management & Scheduling Platform
 
 **SOFTWARE REQUIREMENTS SPECIFICATION (SRS)**
 
-**Schedule Tracker Module --- Phase 1*
+**Schedule Tracker Module --- Phase 1**
 
 Admin & General Manager Access
 
