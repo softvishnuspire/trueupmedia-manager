@@ -1,7 +1,9 @@
 import axios from 'axios';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://trueupmedia-manager.onrender.com';
+
 const api = axios.create({
-    baseURL: 'http://localhost:3001/api/gm',
+    baseURL: `${API_BASE_URL}/api/gm`,
 });
 
 export interface Client {
@@ -28,13 +30,13 @@ export interface ContentItem {
 export const gmApi = {
     getClients: () => api.get<Client[]>('/clients'),
     getCalendar: (clientId: string, month: string) => api.get(`/calendar?client_id=${clientId}&month=${month}`),
-    getMasterCalendar: (month: string, clientId?: string, contentType?: string) => 
+    getMasterCalendar: (month: string, clientId?: string, contentType?: string) =>
         api.get<ContentItem[]>(`/master-calendar?month=${month}${clientId ? `&client_id=${clientId}` : ''}${contentType ? `&content_type=${contentType}` : ''}`),
     getContentDetails: (id: string) => api.get<{ item: ContentItem, history: any[] }>(`/content/${id}`),
     addContent: (data: Partial<ContentItem>) => api.post('/content', data),
     updateContent: (id: string, data: Partial<ContentItem>) => api.put(`/content/${id}`, data),
     deleteContent: (id: string) => api.delete(`/content/${id}`),
-    updateStatus: (id: string, new_status: string, note?: string, changed_by?: string) => 
+    updateStatus: (id: string, new_status: string, note?: string, changed_by?: string) =>
         api.patch(`/content/${id}/status`, { new_status, note, changed_by }),
     getTeamLeads: () => api.get('/team-leads'),
     assignClient: (clientId: string, teamLeadId: string) => api.patch(`/clients/${clientId}/assign`, { team_lead_id: teamLeadId }),
@@ -42,7 +44,7 @@ export const gmApi = {
 };
 
 const adminBase = axios.create({
-    baseURL: 'http://localhost:3001/api/admin',
+    baseURL: `${API_BASE_URL}/api/admin`,
 });
 
 export interface TeamMember {
@@ -67,13 +69,13 @@ export const adminApi = {
 };
 
 const tlBase = axios.create({
-    baseURL: 'http://localhost:3001/api/tl',
+    baseURL: `${API_BASE_URL}/api/tl`,
 });
 
 export const tlApi = {
     getClients: (tlId: string) => tlBase.get<Client[]>(`/clients?tlId=${tlId}`),
     getCalendar: (clientId: string, month: string, tlId: string) => tlBase.get(`/calendar?client_id=${clientId}&month=${month}&tlId=${tlId}`),
-    getMasterCalendar: (month: string, tlId: string, contentType?: string) => 
+    getMasterCalendar: (month: string, tlId: string, contentType?: string) =>
         tlBase.get<ContentItem[]>(`/master-calendar?month=${month}&tlId=${tlId}${contentType ? `&content_type=${contentType}` : ''}`),
 };
 
