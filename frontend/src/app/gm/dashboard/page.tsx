@@ -251,7 +251,7 @@ export default function GMDashboard() {
 
     const handleLogout = async () => {
         await supabase.auth.signOut();
-        router.push('/login');
+        router.push('/');
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
