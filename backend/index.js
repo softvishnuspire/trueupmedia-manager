@@ -689,6 +689,166 @@ app.get('/api/tl/master-calendar', async (req, res) => {
     res.json(data);
 });
 
+// ─── Posting Team Endpoints ───
+
+// Today's Posting Queue
+app.get('/api/posting/today', async (req, res) => {
+    try {
+        const now = new Date();
+        const year = now.getFullYear();
+        const mon = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const startDate = `${year}-${mon}-${day}T00:00:00`;
+        const endDate = `${year}-${mon}-${day}T23:59:59`;
+
+        const { data, error } = await supabase
+            .from('content_items')
+            .select(`*, clients (company_name)`)
+            .eq('status', 'WAITING FOR POSTING')
+            .gte('scheduled_datetime', startDate)
+            .lte('scheduled_datetime', endDate)
+            .order('scheduled_datetime');
+
+        if (error) return res.status(500).json({ error: error.message });
+        res.json(data);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Posting Team: Client Calendar (filtered to WAITING FOR POSTING only)
+app.get('/api/posting/calendar', async (req, res) => {
+    const { client_id, month } = req.query;
+    if (!client_id || !month) return res.status(400).json({ error: 'Missing client_id or month' });
+
+    const [year, mon] = month.split('-');
+    const startDate = `${year}-${mon}-01T00:00:00`;
+    const lastDay = new Date(parseInt(year), parseInt(mon), 0).getDate();
+    const endDate = `${year}-${mon}-${String(lastDay).padStart(2, '0')}T23:59:59`;
+
+    const { data, error } = await supabase
+        .from('content_items')
+        .select(`*, clients (company_name)`)
+        .eq('client_id', client_id)
+        .eq('status', 'WAITING FOR POSTING')
+        .gte('scheduled_datetime', startDate)
+        .lte('scheduled_datetime', endDate)
+        .order('scheduled_datetime');
+
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data);
+});
+
+// Posting Team: Master Calendar (filtered to WAITING FOR POSTING only)
+app.get('/api/posting/master-calendar', async (req, res) => {
+    const { month, client_id } = req.query;
+    if (!month) return res.status(400).json({ error: 'Missing month' });
+
+    const [year, mon] = month.split('-');
+    const startDate = `${year}-${mon}-01T00:00:00`;
+    const lastDay = new Date(parseInt(year), parseInt(mon), 0).getDate();
+    const endDate = `${year}-${mon}-${String(lastDay).padStart(2, '0')}T23:59:59`;
+
+    let query = supabase
+        .from('content_items')
+        .select(`*, clients (company_name)`)
+        .eq('status', 'WAITING FOR POSTING')
+        .gte('scheduled_datetime', startDate)
+        .lte('scheduled_datetime', endDate);
+
+    if (client_id) query = query.eq('client_id', client_id);
+
+    const { data, error } = await query.order('scheduled_datetime');
+
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data);
+});
+
+// Posting Team: Clients list (for calendar dropdown)
+app.get('/api/posting/clients', async (req, res) => {
+    const { data, error } = await supabase
+        .from('clients')
+        .select('id, company_name')
+        .eq('is_active', true)
+        .eq('is_deleted', false)
+        .order('company_name');
+
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data);
+});
+
+// Posting Team: Content Details (for status history)
+app.get('/api/posting/content/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const [itemRes, logsRes] = await Promise.all([
+            supabase.from('content_items').select(`*, clients (company_name)`).eq('id', id).single(),
+            supabase.from('status_logs').select(`*, users:changed_by (name, role_identifier)`).eq('item_id', id).order('changed_at', { ascending: false })
+        ]);
+
+        if (itemRes.error) return res.status(500).json({ error: itemRes.error.message });
+        res.json({ item: itemRes.data, history: logsRes.data || [] });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Posting Team: Mark as Posted (ONLY allowed transition)
+app.patch('/api/posting/content/:id/post', async (req, res) => {
+    const { id } = req.params;
+    const { changed_by } = req.body;
+
+    try {
+        // Fetch current item
+        const { data: item, error: fetchError } = await supabase
+            .from('content_items')
+            .select('status, content_type')
+            .eq('id', id)
+            .single();
+
+        if (fetchError || !item) {
+            return res.status(404).json({ error: 'Item not found' });
+        }
+
+        // CRITICAL: Only allow WAITING FOR POSTING → POSTED
+        if (item.status !== 'WAITING FOR POSTING') {
+            return res.status(400).json({
+                error: `Invalid transition. Current status is "${item.status}". Only items with "WAITING FOR POSTING" can be marked as posted.`
+            });
+        }
+
+        // Update status to POSTED with timestamp
+        const { error: updateError } = await supabase
+            .from('content_items')
+            .update({
+                status: 'POSTED',
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', id);
+
+        if (updateError) {
+            return res.status(500).json({ error: 'Failed to update status' });
+        }
+
+        // Log the status change
+        const { error: logError } = await supabase.from('status_logs').insert([{
+            item_id: id,
+            old_status: 'WAITING FOR POSTING',
+            new_status: 'POSTED',
+            changed_by: changed_by || null,
+            note: 'Marked as posted by Posting Team'
+        }]);
+
+        if (logError) {
+            console.error('[PostingTeam] Log error:', logError);
+        }
+
+        res.json({ message: 'Content marked as POSTED successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 app.use((err, req, res, next) => {
     console.error('Unhandled Error:', err);
     res.status(500).json({ error: 'Internal Server Error', message: err.message });

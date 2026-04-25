@@ -109,4 +109,30 @@ export const tlApi = {
         tlBase.get<ContentItem[]>(`/master-calendar?month=${month}&tlId=${tlId}${contentType ? `&content_type=${contentType}` : ''}`),
 };
 
+// ─── Posting Team API ───
+const postingBase = axios.create({
+    baseURL: `${API_BASE_URL}/api/posting`,
+});
+
+postingBase.interceptors.request.use(async (config) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.access_token) {
+        config.headers.Authorization = `Bearer ${session.access_token}`;
+    }
+    return config;
+});
+
+export const postingApi = {
+    getToday: () => postingBase.get<ContentItem[]>('/today'),
+    getClients: () => postingBase.get<Client[]>('/clients'),
+    getCalendar: (clientId: string, month: string) =>
+        postingBase.get<ContentItem[]>(`/calendar?client_id=${clientId}&month=${month}`),
+    getMasterCalendar: (month: string, clientId?: string) =>
+        postingBase.get<ContentItem[]>(`/master-calendar?month=${month}${clientId ? `&client_id=${clientId}` : ''}`),
+    getContentDetails: (id: string) =>
+        postingBase.get<{ item: ContentItem; history: any[] }>(`/content/${id}`),
+    markAsPosted: (id: string, changedBy?: string) =>
+        postingBase.patch(`/content/${id}/post`, { changed_by: changedBy }),
+};
+
 export default api;

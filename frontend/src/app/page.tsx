@@ -10,7 +10,7 @@ const roles = [
     name: 'Administrator',
     desc: 'Full system access',
     icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
     )
   },
   {
@@ -18,7 +18,7 @@ const roles = [
     name: 'COO',
     desc: 'Executive overview',
     icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><polyline points="16 11 18 13 22 9" /></svg>
     )
   },
   {
@@ -26,7 +26,7 @@ const roles = [
     name: 'General Manager',
     desc: 'Branch management',
     icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /></svg>
     )
   },
   {
@@ -34,23 +34,15 @@ const roles = [
     name: 'Team Lead',
     desc: 'Team operations',
     icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
     )
   },
   {
-    id: 'cc',
-    name: 'Content Creator',
-    desc: 'Asset production',
+    id: 'posting',
+    name: 'Posting Team',
+    desc: 'Content publishing',
     icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
-    )
-  },
-  {
-    id: 'client',
-    name: 'Client',
-    desc: 'Client portal access',
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13" /><path d="M22 2L15 22L11 13L2 9L22 2Z" /></svg>
     )
   }
 ];
@@ -90,7 +82,8 @@ export default function Login() {
 
       // Get the user's role from metadata
       let userRole = data.user?.user_metadata?.role;
-      if (['tl1', 'tl2', 'team lead', 'TL1', 'TL2', 'TEAM LEAD'].includes(userRole)) userRole = 'tl'; // Map backend roles to frontend role 'tl'
+      if (['tl1', 'tl2', 'team lead', 'TL1', 'TL2', 'TEAM LEAD'].includes(userRole)) userRole = 'tl';
+      if (['posting_team', 'POSTING_TEAM', 'posting'].includes(userRole)) userRole = 'posting';
 
       if (userRole && userRole !== selectedRole) {
         setError(`Your account is assigned to the "${userRole}" role. Please select the correct role.`);
@@ -121,15 +114,15 @@ export default function Login() {
 
       {/* Main Glassmorphism Card */}
       <div className={styles.glassCard}>
-        
+
         {/* Left Branding Section */}
         <div className={styles.brandSection}>
           <div className={styles.brandContent}>
             <div className={styles.logoContainer}>
               {!logoError ? (
-                <img 
-                  src="/logo.png" 
-                  alt="TrueUp Media" 
+                <img
+                  src="/logo.png"
+                  alt="TrueUp Media"
                   className={styles.mainLogo}
                   onError={() => setLogoError(true)}
                 />
@@ -153,42 +146,42 @@ export default function Login() {
 
           <div className={styles.roleDropdownContainer}>
             <label className={styles.dropdownLabel}>Workspace Role</label>
-            <div 
-              className={`${styles.dropdownToggle} ${dropdownOpen ? styles.dropdownToggleActive : ''}`} 
+            <div
+              className={`${styles.dropdownToggle} ${dropdownOpen ? styles.dropdownToggleActive : ''}`}
               onClick={() => setDropdownOpen(!dropdownOpen)}
             >
               <div className={styles.selectedRoleDisplay}>
-                 <div className={styles.selectedRoleIcon}>
-                    {roles.find(r => r.id === selectedRole)?.icon}
-                 </div>
-                 <div className={styles.selectedRoleInfo}>
-                   <span className={styles.selectedRoleName}>{roles.find(r => r.id === selectedRole)?.name}</span>
-                   <span className={styles.selectedRoleDesc}>{roles.find(r => r.id === selectedRole)?.desc}</span>
-                 </div>
+                <div className={styles.selectedRoleIcon}>
+                  {roles.find(r => r.id === selectedRole)?.icon}
+                </div>
+                <div className={styles.selectedRoleInfo}>
+                  <span className={styles.selectedRoleName}>{roles.find(r => r.id === selectedRole)?.name}</span>
+                  <span className={styles.selectedRoleDesc}>{roles.find(r => r.id === selectedRole)?.desc}</span>
+                </div>
               </div>
-              <svg className={`${styles.chevron} ${dropdownOpen ? styles.chevronOpen : ''}`} xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              <svg className={`${styles.chevron} ${dropdownOpen ? styles.chevronOpen : ''}`} xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
             </div>
 
             {dropdownOpen && (
               <div className={styles.dropdownMenu}>
                 {roles.map((role) => (
-                   <button 
-                     key={role.id}
-                     type="button" 
-                     className={`${styles.dropdownItem} ${selectedRole === role.id ? styles.dropdownItemActive : ''}`}
-                     onClick={() => {
-                        setSelectedRole(role.id);
-                        setDropdownOpen(false);
-                     }}
-                   >
-                     <div className={styles.dropdownItemIcon}>
-                       {role.icon}
-                     </div>
-                     <div className={styles.dropdownItemInfo}>
-                       <span className={styles.dropdownItemName}>{role.name}</span>
-                       <span className={styles.dropdownItemDesc}>{role.desc}</span>
-                     </div>
-                   </button>
+                  <button
+                    key={role.id}
+                    type="button"
+                    className={`${styles.dropdownItem} ${selectedRole === role.id ? styles.dropdownItemActive : ''}`}
+                    onClick={() => {
+                      setSelectedRole(role.id);
+                      setDropdownOpen(false);
+                    }}
+                  >
+                    <div className={styles.dropdownItemIcon}>
+                      {role.icon}
+                    </div>
+                    <div className={styles.dropdownItemInfo}>
+                      <span className={styles.dropdownItemName}>{role.name}</span>
+                      <span className={styles.dropdownItemDesc}>{role.desc}</span>
+                    </div>
+                  </button>
                 ))}
               </div>
             )}
@@ -196,7 +189,7 @@ export default function Login() {
 
           {error && (
             <div className={styles.errorMessage}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>
               {error}
             </div>
           )}
@@ -205,18 +198,18 @@ export default function Login() {
             <div className={styles.formGroup}>
               <label htmlFor="email">Email Address</label>
               <div className={styles.inputWrapper}>
-                <svg className={styles.inputIcon} xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                <input 
-                  type="email" 
-                  id="email" 
-                  className={styles.input} 
+                <svg className={styles.inputIcon} xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg>
+                <input
+                  type="email"
+                  id="email"
+                  className={styles.input}
                   placeholder="name@trueupmedia.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   maxLength={100}
                   pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
                   title="Please enter a valid email address"
-                  required 
+                  required
                 />
               </div>
             </div>
@@ -224,16 +217,16 @@ export default function Login() {
             <div className={styles.formGroup}>
               <label htmlFor="password">Password</label>
               <div className={styles.inputWrapper}>
-                <svg className={styles.inputIcon} xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                <input 
-                  type="password" 
-                  id="password" 
-                  className={styles.input} 
+                <svg className={styles.inputIcon} xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+                <input
+                  type="password"
+                  id="password"
+                  className={styles.input}
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   maxLength={128}
-                  required 
+                  required
                 />
               </div>
             </div>
@@ -249,7 +242,7 @@ export default function Login() {
               ) : (
                 <>
                   Sign In as {roles.find(r => r.id === selectedRole)?.name}
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
                 </>
               )}
             </button>
