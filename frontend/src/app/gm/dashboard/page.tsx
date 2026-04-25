@@ -34,7 +34,8 @@ import {
     Filter,
     Menu,
     Edit,
-    Trash2
+    Trash2,
+    Check
 } from 'lucide-react';
 import { gmApi } from '@/lib/api';
 import { createClient } from '@/utils/supabase/client';
@@ -954,8 +955,25 @@ export default function GMDashboard() {
                                 <div className="workflow-content">
                                     {(() => {
                                         const flows: any = {
-                                            'Reel': ['CONTENT READY', 'SHOOT DONE', 'EDITING IN PROGRESS', 'EDITED', 'WAITING FOR APPROVAL', 'APPROVED', 'POSTED'],
-                                            'Post': ['CONTENT APPROVED', 'DESIGNING IN PROGRESS', 'DESIGNING COMPLETED', 'WAITING FOR APPROVAL', 'APPROVED']
+                                            'Reel': [
+                                                'CONTENT READY',
+                                                'SHOOT DONE',
+                                                'EDITING IN PROGRESS',
+                                                'EDITED',
+                                                'WAITING FOR APPROVAL',
+                                                'APPROVED',
+                                                'WAITING FOR POSTING',
+                                                'POSTED'
+                                            ],
+                                            'Post': [
+                                                'CONTENT APPROVED',
+                                                'DESIGNING IN PROGRESS',
+                                                'DESIGNING COMPLETED',
+                                                'WAITING FOR APPROVAL',
+                                                'APPROVED',
+                                                'WAITING FOR POSTING',
+                                                'POSTED'
+                                            ]
                                         };
                                         const flow = flows[activeItem.item.content_type];
                                         const currentIdx = flow.indexOf(activeItem.item.status);
@@ -1003,30 +1021,63 @@ export default function GMDashboard() {
 
                         <div className="activity-log">
                             <label className="detail-label">Activity Log</label>
-                            <div className="log-list">
-                                {activeItem.history.length === 0 && (
-                                    <p className="log-empty">No activity yet</p>
-                                )}
-                                {activeItem.history.map((log: any) => (
-                                    <div key={log.log_id} className="log-entry">
-                                        <div className="log-main">
-                                            <div className="log-status">
-                                                <div className="log-dot"></div>
-                                                <span>{log.new_status}</span>
+                            <div className="timeline-container">
+                                <div className="timeline-line"></div>
+                                {(() => {
+                                    const flows: any = {
+                                        'Reel': [
+                                            'CONTENT READY', 'SHOOT DONE', 'EDITING IN PROGRESS', 'EDITED',
+                                            'WAITING FOR APPROVAL', 'APPROVED', 'WAITING FOR POSTING', 'POSTED'
+                                        ],
+                                        'Post': [
+                                            'CONTENT APPROVED', 'DESIGNING IN PROGRESS', 'DESIGNING COMPLETED',
+                                            'WAITING FOR APPROVAL', 'APPROVED', 'WAITING FOR POSTING', 'POSTED'
+                                        ]
+                                    };
+                                    const flow = flows[activeItem.item.content_type] || [];
+                                    const currentStatus = activeItem.item.status;
+                                    const currentIdx = flow.indexOf(currentStatus);
+
+                                    return flow.map((status: string, idx: number) => {
+                                        const isCompleted = idx < currentIdx || currentStatus === 'POSTED';
+                                        const isCurrent = idx === currentIdx && currentStatus !== 'POSTED';
+                                        const historyEntry = activeItem.history.find((h: any) => h.new_status === status);
+
+                                        return (
+                                            <div key={status} className={`timeline-step ${isCompleted ? 'completed' : ''} ${isCurrent ? 'current' : ''}`}>
+                                                <div className="step-indicator">
+                                                    {isCompleted ? (
+                                                        <Check size={14} className="step-checkmark" />
+                                                    ) : isCurrent ? (
+                                                        <div style={{ width: '8px', height: '8px', background: 'white', borderRadius: '50%' }}></div>
+                                                    ) : (
+                                                        <div style={{ width: '6px', height: '6px', background: 'var(--border)', borderRadius: '50%' }}></div>
+                                                    )}
+                                                </div>
+                                                <div className="step-content">
+                                                    <span className="step-title">{status}</span>
+                                                    {historyEntry && (
+                                                        <div className="step-meta">
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                                <span className="step-user">
+                                                                    {historyEntry.users?.role_identifier || historyEntry.users?.name || 'Updated'}
+                                                                </span>
+                                                                <span className="step-time">
+                                                                    {format(parseISO(historyEntry.changed_at), 'MMM d, HH:mm')}
+                                                                </span>
+                                                            </div>
+                                                            {historyEntry.note && (
+                                                                <div className="log-note" style={{ margin: '8px 0 0 0', background: 'rgba(255,255,255,0.02)', border: 'none', borderLeft: '2px solid var(--accent)' }}>
+                                                                    "{historyEntry.note}"
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
-                                            <span className="log-user">
-                                                {log.users?.role_identifier ? `Done by ${log.users.role_identifier}` :
-                                                    log.users?.name ? `Done by ${log.users.name}` : 'Status updated'}
-                                            </span>
-                                            <span className="log-time">{format(parseISO(log.changed_at), 'MMM d, HH:mm')}</span>
-                                        </div>
-                                        {log.note && (
-                                            <div className="log-note">
-                                                "{log.note}"
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
+                                        );
+                                    });
+                                })()}
                             </div>
                         </div>
                     </div>

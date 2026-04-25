@@ -31,7 +31,8 @@ import {
     ArrowRight,
     Search,
     LogOut,
-    Menu
+    Menu,
+    Check
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { tlApi, gmApi } from '@/lib/api';
@@ -449,8 +450,25 @@ export default function TLDashboard() {
                                 <div style={{ marginTop: '16px' }}>
                                     {(() => {
                                         const flows: any = {
-                                            'Reel': ['CONTENT READY', 'SHOOT DONE', 'EDITING IN PROGRESS', 'EDITED', 'WAITING FOR APPROVAL', 'APPROVED', 'POSTED'],
-                                            'Post': ['CONTENT APPROVED', 'DESIGNING IN PROGRESS', 'DESIGNING COMPLETED', 'WAITING FOR APPROVAL', 'APPROVED']
+                                            'Reel': [
+                                                'CONTENT READY',
+                                                'SHOOT DONE',
+                                                'EDITING IN PROGRESS',
+                                                'EDITED',
+                                                'WAITING FOR APPROVAL',
+                                                'APPROVED',
+                                                'WAITING FOR POSTING',
+                                                'POSTED'
+                                            ],
+                                            'Post': [
+                                                'CONTENT APPROVED',
+                                                'DESIGNING IN PROGRESS',
+                                                'DESIGNING COMPLETED',
+                                                'WAITING FOR APPROVAL',
+                                                'APPROVED',
+                                                'WAITING FOR POSTING',
+                                                'POSTED'
+                                            ]
                                         };
                                         const flow = flows[activeItem.item.content_type];
                                         const currentIdx = flow.indexOf(activeItem.item.status);
@@ -517,41 +535,91 @@ export default function TLDashboard() {
 
                         <div style={{ marginTop: '32px', borderTop: '1px solid #f1f5f9', paddingTop: '24px' }}>
                             <label className="detail-label">Activity Log</label>
-                            <div className="log-list" style={{ marginTop: '12px' }}>
-                                {activeItem.history.length === 0 && (
-                                    <p style={{ color: '#94a3b8', fontSize: '13px', fontStyle: 'italic' }}>No activity logs found.</p>
-                                )}
-                                {activeItem.history.map((log: any) => (
-                                    <div key={log.log_id} className="log-entry" style={{ padding: '12px 0', borderBottom: '1px solid #f1f5f9' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#4f46e5' }}></div>
-                                                <span style={{ fontWeight: 700, color: '#1e293b', fontSize: '13px' }}>{log.new_status}</span>
-                                            </div>
-                                            <span style={{ color: '#94a3b8', fontWeight: 500, fontSize: '11px' }}>{format(parseISO(log.changed_at), 'MMM d, HH:mm')}</span>
-                                        </div>
-                                        <div style={{ paddingLeft: '14px' }}>
-                                            <p style={{ fontSize: '12px', color: '#64748b', fontWeight: 500 }}>
-                                                {log.users?.role_identifier ? `Done by ${log.users.role_identifier}` : 
-                                                 log.users?.name ? `Done by ${log.users.name}` : 'Status updated'}
-                                            </p>
-                                            {log.note && (
+                            <div style={{ marginTop: '24px', position: 'relative', paddingLeft: '12px', display: 'flex', flexDirection: 'column' }}>
+                                <div style={{ 
+                                    position: 'absolute', left: '23px', top: '12px', bottom: '12px', 
+                                    width: '2px', background: 'linear-gradient(to bottom, #10b981 0%, #e2e8f0 100%)', opacity: 0.3, zIndex: 1 
+                                }}></div>
+                                {(() => {
+                                    const flows: any = {
+                                        'Reel': [
+                                            'CONTENT READY', 'SHOOT DONE', 'EDITING IN PROGRESS', 'EDITED',
+                                            'WAITING FOR APPROVAL', 'APPROVED', 'WAITING FOR POSTING', 'POSTED'
+                                        ],
+                                        'Post': [
+                                            'CONTENT APPROVED', 'DESIGNING IN PROGRESS', 'DESIGNING COMPLETED',
+                                            'WAITING FOR APPROVAL', 'APPROVED', 'WAITING FOR POSTING', 'POSTED'
+                                        ]
+                                    };
+                                    const flow = flows[activeItem.item.content_type] || [];
+                                    const currentStatus = activeItem.item.status;
+                                    const currentIdx = flow.indexOf(currentStatus);
+
+                                    return flow.map((status: string, idx: number) => {
+                                        const isCompleted = idx < currentIdx || currentStatus === 'POSTED';
+                                        const isCurrent = idx === currentIdx && currentStatus !== 'POSTED';
+                                        const historyEntry = activeItem.history.find((h: any) => h.new_status === status);
+
+                                        return (
+                                            <div key={status} style={{ 
+                                                display: 'flex', alignItems: 'flex-start', gap: '20px', 
+                                                paddingBottom: idx === flow.length - 1 ? 0 : '32px', 
+                                                position: 'relative', zIndex: 2 
+                                            }}>
                                                 <div style={{ 
-                                                    marginTop: '6px', 
-                                                    padding: '8px 12px', 
-                                                    background: 'white', 
-                                                    borderRadius: '8px', 
-                                                    border: '1px solid #e2e8f0',
-                                                    fontSize: '12px',
-                                                    color: '#334155',
-                                                    fontStyle: 'italic'
+                                                    width: '24px', height: '24px', borderRadius: '50%', 
+                                                    background: isCompleted ? '#10b981' : isCurrent ? '#4f46e5' : 'white',
+                                                    border: `2px solid ${isCompleted ? '#10b981' : isCurrent ? '#4f46e5' : '#ef4444'}`,
+                                                    flexShrink: 0, marginTop: '2px', display: 'flex', 
+                                                    alignItems: 'center', justifyContent: 'center',
+                                                    boxShadow: isCompleted ? '0 0 15px rgba(16, 185, 129, 0.4)' : isCurrent ? '0 0 20px rgba(79, 70, 229, 0.5)' : 'none',
+                                                    transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
                                                 }}>
-                                                    "{log.note}"
+                                                    {isCompleted ? (
+                                                        <Check size={14} color="white" strokeWidth={3} />
+                                                    ) : isCurrent ? (
+                                                        <div style={{ width: '8px', height: '8px', background: 'white', borderRadius: '50%' }}></div>
+                                                    ) : (
+                                                        <div style={{ width: '6px', height: '6px', background: '#ef4444', borderRadius: '50%' }}></div>
+                                                    )}
                                                 </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
+                                                <div style={{ flex: 1 }}>
+                                                    <span style={{ 
+                                                        fontSize: isCurrent ? '15px' : '14px', fontWeight: 800, 
+                                                        color: isCompleted ? '#10b981' : isCurrent ? '#1e293b' : '#ef4444',
+                                                        letterSpacing: '0.02em', transition: 'all 0.3s'
+                                                    }}>{status}</span>
+                                                    {historyEntry && (
+                                                        <div style={{ 
+                                                            display: 'flex', flexDirection: 'column', marginTop: '6px',
+                                                            padding: '10px 14px', background: 'rgba(79, 70, 229, 0.03)',
+                                                            borderRadius: '12px', border: '1px solid rgba(79, 70, 229, 0.05)'
+                                                        }}>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                                <span style={{ fontSize: '11px', fontWeight: 800, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                                                    {historyEntry.users?.role_identifier || historyEntry.users?.name || 'Updated'}
+                                                                </span>
+                                                                <span style={{ fontSize: '11px', color: '#94a3b8' }}>
+                                                                    {format(parseISO(historyEntry.changed_at), 'MMM d, HH:mm')}
+                                                                </span>
+                                                            </div>
+                                                            {historyEntry.note && (
+                                                                <div style={{ 
+                                                                    marginTop: '8px', padding: '8px 12px', 
+                                                                    background: 'rgba(255, 255, 255, 0.5)', borderRadius: '8px', 
+                                                                    fontSize: '12px', color: '#475569', 
+                                                                    fontStyle: 'italic', borderLeft: '3px solid #4f46e5'
+                                                                }}>
+                                                                    "{historyEntry.note}"
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    });
+                                })()}
                             </div>
                         </div>
                     </div>

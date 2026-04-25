@@ -612,11 +612,11 @@
     }
 
     .mobile-dot.post {
-        background: var(--success) !important;
+        background: #3b82f6 !important;
     }
 
     .mobile-dot.reel {
-        background: var(--warning) !important;
+        background: #a855f7 !important;
     }
 
     /* Aggressively hide all desktop event blocks on mobile */
@@ -1131,38 +1131,38 @@
 }
 
 .content-item.post {
-    background: rgba(16, 185, 129, 0.1);
-    color: var(--success);
-    border: 1px solid rgba(16, 185, 129, 0.2);
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
 .content-item.post:hover {
-    background: rgba(16, 185, 129, 0.2);
+    background: rgba(59, 130, 246, 0.2);
 }
 
 .content-item.reel {
-    background: rgba(245, 158, 11, 0.1);
-    color: var(--warning);
-    border: 1px solid rgba(245, 158, 11, 0.2);
+    background: rgba(168, 85, 247, 0.1);
+    color: #a855f7;
+    border: 1px solid rgba(168, 85, 247, 0.2);
 }
 
 .content-item.reel:hover {
-    background: rgba(245, 158, 11, 0.2);
+    background: rgba(168, 85, 247, 0.2);
 }
 
 /* ─── Modals ─── */
 .modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(4px);
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
     display: flex;
-    align-items: center;
     justify-content: center;
+    align-items: flex-start; /* Ensure scrolling starts from top */
     z-index: 2000;
     animation: fadeIn 0.15s ease;
     overflow-y: auto;
-    padding: 20px;
+    padding: 40px 20px;
 }
 
 @media (max-width: 768px) {
@@ -1179,12 +1179,15 @@
 .modal-content {
     background: var(--bg-surface);
     border: 1px solid var(--border);
-    border-radius: 20px;
+    border-radius: 24px;
     padding: 32px;
     width: 100%;
     max-width: 480px;
-    box-shadow: 0 25px 50px rgba(0,0,0,0.5);
-    animation: slideUp 0.2s ease;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    margin-bottom: auto; /* Push down if small, allow top start if large */
+    margin-top: auto;
+    position: relative;
 }
 
 @media (max-width: 768px) {
@@ -1324,13 +1327,13 @@
 }
 
 .type-badge.post {
-    background: rgba(16, 185, 129, 0.1);
-    color: var(--success);
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6; /* Blue */
 }
 
 .type-badge.reel {
-    background: rgba(245, 158, 11, 0.1);
-    color: var(--warning);
+    background: rgba(168, 85, 247, 0.1);
+    color: #a855f7; /* Purple */
 }
 
 .meta-dot {
@@ -1507,6 +1510,135 @@
     height: 6px;
     border-radius: 50%;
     background: var(--text-muted);
+}
+
+/* ─── Workflow Timeline ─── */
+.timeline-container {
+    display: flex;
+    flex-direction: column;
+    margin-top: 24px;
+    position: relative;
+    padding-left: 12px;
+}
+
+.timeline-line {
+    position: absolute;
+    left: 23px;
+    top: 12px;
+    bottom: 12px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--success) 0%, var(--border) 100%);
+    opacity: 0.3;
+    z-index: 1;
+}
+
+.timeline-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    padding-bottom: 32px;
+    position: relative;
+    z-index: 2;
+}
+
+.timeline-step:last-child {
+    padding-bottom: 0;
+}
+
+.step-indicator {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--bg-surface);
+    border: 2px solid #ef4444; /* Red for pending */
+    flex-shrink: 0;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+}
+
+.timeline-step.completed .step-indicator {
+    background: #10b981; /* Green */
+    border-color: #10b981;
+    color: white;
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+}
+
+.timeline-step.current .step-indicator {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+    transform: scale(1.1);
+}
+
+.timeline-step.current .step-indicator::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+    animation: pulse-ring 2s infinite;
+}
+
+@keyframes pulse-ring {
+    0% { transform: scale(0.8); opacity: 0.5; }
+    100% { transform: scale(1.5); opacity: 0; }
+}
+
+.step-content {
+    flex: 1;
+}
+
+.step-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: #ef4444; /* Red for pending */
+    letter-spacing: 0.02em;
+    transition: color 0.3s ease;
+}
+
+.timeline-step.completed .step-title {
+    color: #10b981; /* Green */
+}
+
+.timeline-step.current .step-title {
+    color: var(--text-primary);
+    font-size: 15px;
+}
+
+.step-meta {
+    display: flex;
+    flex-direction: column;
+    margin-top: 6px;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.step-user {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.step-time {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.step-checkmark {
+    width: 12px;
+    height: 12px;
+    stroke-width: 3;
 }
 /* ─── Teams View ─── */
 .teams-container {
