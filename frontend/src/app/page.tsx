@@ -36,11 +36,28 @@ const roles = [
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
     )
+  },
+  {
+    id: 'cc',
+    name: 'Content Creator',
+    desc: 'Asset production',
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+    )
+  },
+  {
+    id: 'client',
+    name: 'Client',
+    desc: 'Client portal access',
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    )
   }
 ];
 
 export default function Login() {
   const [selectedRole, setSelectedRole] = useState('admin');
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -134,23 +151,47 @@ export default function Login() {
             <p>Choose your workspace to continue</p>
           </div>
 
-          <div className={styles.roleGrid}>
-            {roles.map((role) => (
-              <button 
-                key={role.id}
-                type="button"
-                className={`${styles.roleCard} ${selectedRole === role.id ? styles.roleCardActive : ''}`}
-                onClick={() => setSelectedRole(role.id)}
-              >
-                <div className={styles.roleIcon}>
-                  {role.icon}
-                </div>
-                <div className={styles.roleInfo}>
-                  <div className={styles.roleName} style={{ textAlign: 'left' }}>{role.name}</div>
-                  <div className={styles.roleDesc} style={{ textAlign: 'left' }}>{role.desc}</div>
-                </div>
-              </button>
-            ))}
+          <div className={styles.roleDropdownContainer}>
+            <label className={styles.dropdownLabel}>Workspace Role</label>
+            <div 
+              className={`${styles.dropdownToggle} ${dropdownOpen ? styles.dropdownToggleActive : ''}`} 
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+            >
+              <div className={styles.selectedRoleDisplay}>
+                 <div className={styles.selectedRoleIcon}>
+                    {roles.find(r => r.id === selectedRole)?.icon}
+                 </div>
+                 <div className={styles.selectedRoleInfo}>
+                   <span className={styles.selectedRoleName}>{roles.find(r => r.id === selectedRole)?.name}</span>
+                   <span className={styles.selectedRoleDesc}>{roles.find(r => r.id === selectedRole)?.desc}</span>
+                 </div>
+              </div>
+              <svg className={`${styles.chevron} ${dropdownOpen ? styles.chevronOpen : ''}`} xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+
+            {dropdownOpen && (
+              <div className={styles.dropdownMenu}>
+                {roles.map((role) => (
+                   <button 
+                     key={role.id}
+                     type="button" 
+                     className={`${styles.dropdownItem} ${selectedRole === role.id ? styles.dropdownItemActive : ''}`}
+                     onClick={() => {
+                        setSelectedRole(role.id);
+                        setDropdownOpen(false);
+                     }}
+                   >
+                     <div className={styles.dropdownItemIcon}>
+                       {role.icon}
+                     </div>
+                     <div className={styles.dropdownItemInfo}>
+                       <span className={styles.dropdownItemName}>{role.name}</span>
+                       <span className={styles.dropdownItemDesc}>{role.desc}</span>
+                     </div>
+                   </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {error && (
