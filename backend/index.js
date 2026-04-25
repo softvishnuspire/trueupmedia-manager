@@ -9,10 +9,10 @@ const app = express();
 app.use(compression());
 
 app.use(cors({
-  origin: true,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+    origin: true,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(express.json());
@@ -41,15 +41,15 @@ const authenticateUser = async (req, res, next) => {
         console.warn(`⚠️  No token provided for ${req.method} ${req.url}`);
         return res.status(401).json({ error: 'Unauthorized: No token provided' });
     }
-    
+
     const token = authHeader.split(' ')[1];
     const { data: { user }, error } = await supabase.auth.getUser(token);
-    
+
     if (error || !user) {
         console.error('❌ Auth Error:', error?.message || 'User not found');
         return res.status(401).json({ error: 'Unauthorized: Invalid token' });
     }
-    
+
     console.log(`✅ Auth Success: ${user.email} (${req.method} ${req.url})`);
     req.user = user;
     next();
@@ -69,6 +69,7 @@ const STATUS_FLOWS = {
         'EDITED',
         'WAITING FOR APPROVAL',
         'APPROVED',
+        'WAITING FOR POSTING',
         'POSTED'
     ],
     'Post': [
@@ -76,7 +77,9 @@ const STATUS_FLOWS = {
         'DESIGNING IN PROGRESS',
         'DESIGNING COMPLETED',
         'WAITING FOR APPROVAL',
-        'APPROVED'
+        'APPROVED',
+        'WAITING FOR POSTING',
+        'POSTED'
     ]
 };
 
@@ -90,7 +93,7 @@ app.get('/api/gm/clients', async (req, res) => {
         .select('id, company_name')
         .eq('is_active', true)
         .eq('is_deleted', false);
-    
+
     if (error) return res.status(500).json({ error: error.message });
     myCache.set("gm_clients", data);
     res.json(data);
@@ -194,7 +197,7 @@ app.get('/api/gm/content/:id', async (req, res) => {
 app.patch('/api/gm/content/:id/status', async (req, res) => {
     const { id } = req.params;
     const { new_status, note, changed_by } = req.body;
-    
+
     console.log(`[StatusUpdate] ID: ${id}, New: ${new_status}, Note: ${note}, User: ${changed_by}`);
 
     const { data: item, error: fetchError } = await supabase
@@ -213,8 +216,8 @@ app.patch('/api/gm/content/:id/status', async (req, res) => {
     const newIndex = flow.indexOf(new_status);
 
     if (newIndex !== currentIndex + 1) {
-        return res.status(400).json({ 
-            error: `Invalid status transition. Next status should be: ${flow[currentIndex + 1] || 'None'}` 
+        return res.status(400).json({
+            error: `Invalid status transition. Next status should be: ${flow[currentIndex + 1] || 'None'}`
         });
     }
 
@@ -230,14 +233,14 @@ app.patch('/api/gm/content/:id/status', async (req, res) => {
     }
 
     // Log the change
-    const logData = { 
-        item_id: id, 
-        old_status: item.status, 
+    const logData = {
+        item_id: id,
+        old_status: item.status,
         new_status: new_status,
         note: note || null,
         changed_by: changed_by || null
     };
-    
+
     const { error: logError } = await supabase.from('status_logs').insert([logData]);
 
     if (logError) {
@@ -263,15 +266,15 @@ app.get('/api/admin/clients', async (req, res) => {
 app.post('/api/admin/clients', async (req, res) => {
     const { company_name, phone, email, address, posts_per_month, reels_per_month } = req.body;
     if (!company_name) return res.status(400).json({ error: 'Company Name is mandatory' });
-    const { data, error } = await supabase.from('clients').insert([{ 
-        company_name, 
-        phone, 
-        email, 
-        address, 
+    const { data, error } = await supabase.from('clients').insert([{
+        company_name,
+        phone,
+        email,
+        address,
         posts_per_month: parseInt(posts_per_month) || 0,
         reels_per_month: parseInt(reels_per_month) || 0,
-        is_active: true, 
-        is_deleted: false 
+        is_active: true,
+        is_deleted: false
     }]).select();
     if (error) return res.status(500).json({ error: error.message });
     myCache.del(["gm_clients", "admin_clients"]);
@@ -281,11 +284,11 @@ app.post('/api/admin/clients', async (req, res) => {
 app.put('/api/admin/clients/:id', async (req, res) => {
     const { id } = req.params;
     const { company_name, phone, email, address, is_active, posts_per_month, reels_per_month } = req.body;
-    const { data, error } = await supabase.from('clients').update({ 
-        company_name, 
-        phone, 
-        email, 
-        address, 
+    const { data, error } = await supabase.from('clients').update({
+        company_name,
+        phone,
+        email,
+        address,
         is_active,
         posts_per_month: parseInt(posts_per_month) || 0,
         reels_per_month: parseInt(reels_per_month) || 0
@@ -312,9 +315,9 @@ app.get('/api/admin/team', async (req, res) => {
         .from('users')
         .select('*')
         .order('created_at', { ascending: false });
-    
+
     if (error) return res.status(500).json({ error: error.message });
-    
+
     // Filter in JS to avoid enum-space matching issues in some environments
     const teamLeads = (data || []).filter(u => ['TL1', 'TL2', 'TEAM LEAD'].includes(u.role));
     myCache.set("admin_team", teamLeads);
@@ -336,11 +339,11 @@ app.post('/api/admin/team', async (req, res) => {
             return res.status(500).json({ error: authError.message });
         }
 
-        const { data, error } = await supabase.from('users').insert([{ 
-            user_id: authUser.user.id, 
-            name, 
-            email, 
-            password_hash: password, 
+        const { data, error } = await supabase.from('users').insert([{
+            user_id: authUser.user.id,
+            name,
+            email,
+            password_hash: password,
             role,
             role_identifier: role_identifier || role
         }]).select();
@@ -350,7 +353,7 @@ app.post('/api/admin/team', async (req, res) => {
             await supabase.auth.admin.deleteUser(authUser.user.id);
             return res.status(500).json({ error: error.message });
         }
-        
+
         myCache.del("admin_team");
         res.json(data[0]);
     } catch (error) {
@@ -373,7 +376,7 @@ app.put('/api/admin/team/:id', async (req, res) => {
         if (password) updateData.password = password;
 
         const { error: authError } = await supabase.auth.admin.updateUserById(id, updateData);
-        
+
         if (authError) {
             console.warn(`[Admin] Auth update warning for ${id}:`, authError.message);
             // If user doesn't exist in Auth, create them!
@@ -404,7 +407,7 @@ app.put('/api/admin/team/:id', async (req, res) => {
             console.error(`[Admin] DB update error for ${id}:`, error.message);
             return res.status(500).json({ error: error.message });
         }
-        
+
         myCache.del("admin_team");
         res.json(data[0]);
     } catch (error) {
@@ -416,7 +419,7 @@ app.put('/api/admin/team/:id', async (req, res) => {
 app.delete('/api/admin/team/:id', async (req, res) => {
     const { id } = req.params;
     console.log(`[Admin] Delete request for user: ${id}`);
-    
+
     try {
         // 1. Unassign this team lead from any clients they manage
         const { error: unassignError } = await supabase
@@ -470,10 +473,10 @@ app.get('/api/admin/stats', async (req, res) => {
             statusRes.data.forEach(item => { statusSummary[item.status] = (statusSummary[item.status] || 0) + 1; });
         }
 
-        res.json({ 
-            totalClients: clientRes.count, 
-            totalItemsThisMonth: itemRes.count, 
-            statusSummary 
+        res.json({
+            totalClients: clientRes.count,
+            totalItemsThisMonth: itemRes.count,
+            statusSummary
         });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -485,9 +488,9 @@ app.get('/api/gm/team-leads', async (req, res) => {
     const { data, error } = await supabase
         .from('users')
         .select('user_id, name, email, role, role_identifier');
-    
+
     if (error) return res.status(500).json({ error: error.message });
-    
+
     // Filter in JS to avoid enum-space matching issues
     const teamLeads = (data || []).filter(u => ['TL1', 'TL2', 'TEAM LEAD'].includes(u.role));
     res.json(teamLeads);
@@ -525,7 +528,7 @@ app.patch('/api/gm/clients/:id/assign', async (req, res) => {
             myCache.del(`tl_clients_${team_lead_id}`);
         }
         myCache.del(["gm_clients", "admin_clients"]);
-        
+
         res.json(data[0]);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -545,7 +548,7 @@ app.get('/api/gm/team-leads/:id/clients', async (req, res) => {
         .eq('team_lead_id', id)
         .eq('is_active', true)
         .eq('is_deleted', false);
-    
+
     if (error) return res.status(500).json({ error: error.message });
     myCache.set(cacheKey, data);
     res.json(data);
@@ -565,7 +568,7 @@ app.get('/api/tl/clients', async (req, res) => {
         .eq('is_active', true)
         .eq('is_deleted', false)
         .order('company_name');
-    
+
     if (error) return res.status(500).json({ error: error.message });
     res.json(data);
 });
@@ -613,7 +616,7 @@ app.get('/api/tl/clients', async (req, res) => {
         .select('*')
         .eq('team_lead_id', tlId)
         .eq('is_deleted', false);
-    
+
     if (error) return res.status(500).json({ error: error.message });
     res.json(data);
 });
