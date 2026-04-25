@@ -219,6 +219,7 @@ export default function GMDashboard() {
         if (isMasterMode) return;
         setSelectedDate(date);
         setEditingItem(null);
+        setIsRescheduling(false);
         setFormData({ content_type: 'Post', time: '10:00', title: '', description: '' });
         setIsModalOpen(true);
     };
@@ -876,7 +877,7 @@ export default function GMDashboard() {
                     <div className="modal-content">
                         <div className="modal-header">
                             <h3 className="modal-title">{editingItem ? 'Edit Content' : 'Schedule New Content'}</h3>
-                            <button onClick={() => { setIsModalOpen(false); setEditingItem(null); }} className="modal-close"><X size={20} /></button>
+                            <button onClick={() => { setIsModalOpen(false); setEditingItem(null); setIsRescheduling(false); }} className="modal-close"><X size={20} /></button>
                         </div>
                         <form onSubmit={handleSubmit} className="modal-form">
 
@@ -1009,7 +1010,7 @@ export default function GMDashboard() {
                                         </div>
                                     </div>
                                     {(() => {
-                                        const isOverdue = isBefore(parseISO(activeItem.item.scheduled_datetime), startOfDay(new Date())) && activeItem.item.status !== 'POSTED';
+                                        const isOverdue = isBefore(parseISO(activeItem.item.scheduled_datetime), new Date()) && activeItem.item.status !== 'POSTED';
                                         if (isOverdue) {
                                             return (
                                                 <button 

@@ -101,12 +101,25 @@ export default function MasterCalendar() {
         if (viewMode === 'month') setCurrentMonth(addMonths(currentMonth, 1));
         else setCurrentMonth(prev => new Date(prev.setDate(prev.getDate() + 7)));
     };
-
     const handleItemClick = async (item: ContentItem) => {
         try {
             const res = await gmApi.getContentDetails(item.id);
             setSelectedItem(res.data);
         } catch (err) { console.error(err); }
+    };
+
+    const handleUndoStatus = async () => {
+        if (!selectedItem) return;
+        if (!window.confirm('Are you sure you want to undo the last status change?')) return;
+        try {
+            await gmApi.undoStatus(selectedItem.item.id);
+            const res = await gmApi.getContentDetails(selectedItem.item.id);
+            setSelectedItem(res.data);
+            fetchMasterData();
+        } catch (err) { 
+            console.error(err); 
+            alert('Failed to undo status change. It might be because there is no more history to undo.'); 
+        }
     };
 
     return (
@@ -346,7 +359,7 @@ export default function MasterCalendar() {
                                     </div>
                                 </div>
                                 {(() => {
-                                    const isOverdue = isBefore(parseISO(selectedItem.item.scheduled_datetime), startOfDay(new Date())) && selectedItem.item.status !== 'POSTED';
+                                    const isOverdue = isBefore(parseISO(selectedItem.item.scheduled_datetime), new Date()) && selectedItem.item.status !== 'POSTED';
                                     if (isOverdue) {
                                         return (
                                             <div style={{ padding: '12px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, fontSize: '13px' }}>
@@ -366,7 +379,23 @@ export default function MasterCalendar() {
                                     <p style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-primary)' }}>{selectedItem.item.status}</p>
                                 </div>
 
-                                <label className="detail-label">Activity Log</label>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                    <label className="detail-label" style={{ marginBottom: 0 }}>Activity Log</label>
+                                    {selectedItem.history.length > 0 && (
+                                        <button 
+                                            onClick={handleUndoStatus}
+                                            style={{ 
+                                                display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', 
+                                                background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', 
+                                                border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '6px', 
+                                                fontSize: '11px', fontWeight: 700, cursor: 'pointer' 
+                                            }}
+                                        >
+                                            <Undo2 size={12} />
+                                            Undo Last Step
+                                        </button>
+                                    )}
+                                </div>
                                 <div style={{ marginTop: '24px', position: 'relative', paddingLeft: '12px', display: 'flex', flexDirection: 'column' }}>
                                     <div style={{ 
                                         position: 'absolute', left: '23px', top: '12px', bottom: '12px', 

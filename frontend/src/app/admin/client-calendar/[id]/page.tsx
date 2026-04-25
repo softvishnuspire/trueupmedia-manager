@@ -397,7 +397,7 @@ export default function ClientCalendarPage() {
                                     </div>
                                 </div>
                                 {(() => {
-                                    const isOverdue = isBefore(parseISO(selectedItem.item.scheduled_datetime), startOfDay(new Date())) && selectedItem.item.status !== 'POSTED';
+                                    const isOverdue = isBefore(parseISO(selectedItem.item.scheduled_datetime), new Date()) && selectedItem.item.status !== 'POSTED';
                                     if (isOverdue) {
                                         return (
                                             <button 
@@ -535,7 +535,7 @@ export default function ClientCalendarPage() {
                     <div className="modal-content">
                         <div className="modal-header">
                             <h3 className="modal-title">{editingItem ? 'Edit Content' : 'Schedule New Content'}</h3>
-                            <button onClick={() => { setShowAddModal(false); setEditingItem(null); }} className="modal-close"><X size={20}/></button>
+                            <button onClick={() => { setShowAddModal(false); setEditingItem(null); setIsRescheduling(false); }} className="modal-close"><X size={20} /></button>
                         </div>
                         <form onSubmit={handleAddContent}>
 
