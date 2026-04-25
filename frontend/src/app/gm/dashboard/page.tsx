@@ -87,10 +87,10 @@ export default function GMDashboard() {
     const isMasterMode = view === 'master';
 
     const [formData, setFormData] = useState({
-        title: '',
-        description: '',
         content_type: 'Post' as 'Post' | 'Reel',
-        time: '10:00'
+        time: '10:00',
+        title: '',
+        description: ''
     });
 
     useEffect(() => {
@@ -211,7 +211,7 @@ export default function GMDashboard() {
         if (isMasterMode) return;
         setSelectedDate(date);
         setEditingItem(null);
-        setFormData({ title: '', description: '', content_type: 'Post', time: '10:00' });
+        setFormData({ content_type: 'Post', time: '10:00', title: '', description: '' });
         setIsModalOpen(true);
     };
 
@@ -228,10 +228,10 @@ export default function GMDashboard() {
         const dt = parseISO(item.scheduled_datetime);
         setSelectedDate(dt);
         setFormData({
-            title: item.title,
-            description: item.description || '',
             content_type: item.content_type,
-            time: format(dt, 'HH:mm')
+            time: format(dt, 'HH:mm'),
+            title: item.title || '',
+            description: item.description || ''
         });
         setIsDetailsOpen(false);
         setIsModalOpen(true);
@@ -796,7 +796,7 @@ export default function GMDashboard() {
                                                             {item.content_type === 'Post' ? <FileText size={10} /> : <Video size={10} />}
                                                             <span className="truncate">
                                                                 {view === 'master' ? `[${item.clients?.company_name?.substring(0, 3)}] ` : ''}
-                                                                {item.title}
+                                                                {item.content_type}
                                                             </span>
                                                         </div>
                                                     ))}
@@ -828,14 +828,7 @@ export default function GMDashboard() {
                             <button onClick={() => { setIsModalOpen(false); setEditingItem(null); }} className="modal-close"><X size={20} /></button>
                         </div>
                         <form onSubmit={handleSubmit} className="modal-form">
-                            <div className="form-group">
-                                <label className="form-label">Title</label>
-                                <input required className="form-input" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} placeholder="Enter content title..." />
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label">Description</label>
-                                <textarea className="form-input" rows={3} value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} placeholder="Add some details..." />
-                            </div>
+
                             <div className="form-row">
                                 <div className="form-group">
                                     <label className="form-label">Type</label>
@@ -893,7 +886,7 @@ export default function GMDashboard() {
                                         <p style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                                             {item.clients?.company_name}
                                         </p>
-                                        <p style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>{item.title}</p>
+                                        <p style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>{item.content_type}</p>
                                     </div>
                                 </div>
                             ))}
@@ -915,7 +908,7 @@ export default function GMDashboard() {
                                     <span className="meta-dot">•</span>
                                     <span className="meta-client">{activeItem.item.clients?.company_name}</span>
                                 </div>
-                                <h3 className="modal-title" style={{ marginTop: '8px' }}>{activeItem.item.title}</h3>
+                                <h3 className="modal-title" style={{ marginTop: '8px' }}>{activeItem.item.content_type}</h3>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                 <button 
@@ -940,10 +933,7 @@ export default function GMDashboard() {
 
                         <div className="detail-grid">
                             <div className="detail-main">
-                                <div className="detail-section">
-                                    <label className="detail-label">Description</label>
-                                    <p className="detail-text">{activeItem.item.description || 'No description provided.'}</p>
-                                </div>
+
 
                                 <div className="detail-section" style={{ marginTop: '24px' }}>
                                     <label className="detail-label">Schedule Info</label>

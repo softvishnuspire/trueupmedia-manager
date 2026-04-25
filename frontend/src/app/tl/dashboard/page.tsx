@@ -386,12 +386,12 @@ export default function TLDashboard() {
                                                         key={item.id}
                                                         onClick={(e) => { e.stopPropagation(); handleItemClick(item); }}
                                                         className={`content-item ${item.content_type.toLowerCase()}`}
-                                                        title={item.title}
+                                                        title={item.content_type}
                                                     >
                                                         {item.content_type === 'Post' ? <FileText size={10}/> : <Video size={10}/>}
                                                         <span className="truncate" style={{ fontSize: '9px' }}>
                                                             {view === 'master' ? `[${item.clients?.company_name?.substring(0,3)}] ` : ''}
-                                                            {item.title}
+                                                            {item.content_type}
                                                         </span>
                                                     </div>
                                                 ))}
@@ -418,17 +418,14 @@ export default function TLDashboard() {
                                     <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>•</span>
                                     <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)' }}>{activeItem.item.clients?.company_name}</span>
                                 </div>
-                                <h3 className="modal-title">{activeItem.item.title}</h3>
+                                <h3 className="modal-title">{activeItem.item.content_type}</h3>
                             </div>
                             <button onClick={() => setIsDetailsOpen(false)} className="btn-icon"><X size={20}/></button>
                         </div>
 
                         <div className="detail-grid">
                             <div className="detail-info">
-                                <div style={{ marginBottom: '24px' }}>
-                                    <label className="detail-label">Description</label>
-                                    <p className="detail-text">{activeItem.item.description || 'No description provided.'}</p>
-                                </div>
+
                                 <div style={{ display: 'flex', gap: '24px' }}>
                                     <div>
                                         <label className="detail-label">Scheduled Date</label>

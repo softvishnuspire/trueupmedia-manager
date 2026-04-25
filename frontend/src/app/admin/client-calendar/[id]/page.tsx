@@ -56,11 +56,11 @@ export default function ClientCalendarPage() {
     const [editingItem, setEditingItem] = useState<ContentItem | null>(null);
 
     const [formData, setFormData] = useState({
-        title: '',
-        description: '',
         content_type: 'Post' as 'Post' | 'Reel',
         scheduled_datetime: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
-        client_id: clientId
+        client_id: clientId,
+        title: '',
+        description: ''
     });
 
     const fetchClientInfo = useCallback(async () => {
@@ -118,11 +118,11 @@ export default function ClientCalendarPage() {
     const handleEditClick = (item: ContentItem) => {
         setEditingItem(item);
         setFormData({
-            title: item.title,
-            description: item.description || '',
             content_type: item.content_type,
             scheduled_datetime: format(parseISO(item.scheduled_datetime), "yyyy-MM-dd'T'HH:mm"),
-            client_id: item.client_id
+            client_id: item.client_id,
+            title: item.title || '',
+            description: item.description || ''
         });
         setSelectedItem(null);
         setShowAddModal(true);
@@ -148,11 +148,11 @@ export default function ClientCalendarPage() {
             setShowAddModal(false);
             setEditingItem(null);
             setFormData({
-                title: '',
-                description: '',
                 content_type: 'Post',
                 scheduled_datetime: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
-                client_id: clientId
+                client_id: clientId,
+                title: '',
+                description: ''
             });
             fetchCalendarData();
         } catch (err) { console.error(err); alert('Error saving content'); }
@@ -252,7 +252,7 @@ export default function ClientCalendarPage() {
                                         >
                                             {item.content_type === 'Post' ? <FileText size={10}/> : <Video size={10}/>}
                                             <span style={{ textOverflow: 'ellipsis', overflow: 'hidden' }}>
-                                                {item.title}
+                                                {item.content_type}
                                             </span>
                                         </div>
                                     ))}
@@ -298,7 +298,7 @@ export default function ClientCalendarPage() {
                                         background: item.content_type === 'Post' ? '#10b981' : '#6366f1' 
                                     }}></div>
                                     <div style={{ flex: 1 }}>
-                                        <p style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>{item.title}</p>
+                                        <p style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>{item.content_type}</p>
                                     </div>
                                 </div>
                             ))}
@@ -318,7 +318,7 @@ export default function ClientCalendarPage() {
                                         {selectedItem.item.content_type}
                                     </span>
                                 </div>
-                                <h3 className="modal-title">{selectedItem.item.title}</h3>
+                                <h3 className="modal-title">{selectedItem.item.content_type}</h3>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                 <button 
@@ -343,10 +343,7 @@ export default function ClientCalendarPage() {
                         
                         <div className="detail-grid">
                             <div className="detail-info" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                                <div>
-                                    <label className="detail-label">Description</label>
-                                    <p className="detail-text">{selectedItem.item.description || 'No description provided.'}</p>
-                                </div>
+
 
                                 <div style={{ display: 'flex', gap: '24px' }}>
                                     <div>
@@ -400,17 +397,7 @@ export default function ClientCalendarPage() {
                             <button onClick={() => { setShowAddModal(false); setEditingItem(null); }} className="modal-close"><X size={20}/></button>
                         </div>
                         <form onSubmit={handleAddContent}>
-                            <div className="form-group">
-                                <label className="form-label">Title / Brief *</label>
-                                <input 
-                                    type="text" 
-                                    className="form-input" 
-                                    required 
-                                    value={formData.title}
-                                    onChange={(e) => setFormData({...formData, title: e.target.value})}
-                                    placeholder="e.g. Summer Collection Launch Post"
-                                />
-                            </div>
+
                             <div className="form-group">
                                 <label className="form-label">Content Type</label>
                                 <select 
@@ -433,17 +420,7 @@ export default function ClientCalendarPage() {
                                     onChange={(e) => setFormData({...formData, scheduled_datetime: e.target.value})}
                                 />
                             </div>
-                            <div className="form-group">
-                                <label className="form-label">Description / Instructions</label>
-                                <textarea 
-                                    className="form-input" 
-                                    rows={3}
-                                    value={formData.description}
-                                    onChange={(e) => setFormData({...formData, description: e.target.value})}
-                                    placeholder="Add any specific details for the content creation team..."
-                                    style={{ resize: 'none' }}
-                                />
-                            </div>
+
                             <div className="modal-footer">
                                 <button type="button" className="btn-secondary" onClick={() => { setShowAddModal(false); setEditingItem(null); }}>Cancel</button>
                                 <button type="submit" className="btn-primary" style={{ width: 'auto', padding: '10px 24px' }}>

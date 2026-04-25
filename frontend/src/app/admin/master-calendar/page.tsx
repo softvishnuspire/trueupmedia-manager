@@ -241,7 +241,7 @@ export default function MasterCalendar() {
                                                 >
                                                     {item.content_type === 'Post' ? <FileText size={10}/> : <Video size={10}/>}
                                                     <span style={{ textOverflow: 'ellipsis', overflow: 'hidden' }}>
-                                                        [{item.clients?.company_name?.substring(0, 3)}] {item.title}
+                                                        [{item.clients?.company_name?.substring(0, 3)}] {item.content_type}
                                                     </span>
                                                 </div>
                                             ))}
@@ -292,7 +292,7 @@ export default function MasterCalendar() {
                                         <p style={{ fontSize: '11px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>
                                             {item.clients?.company_name}
                                         </p>
-                                        <p style={{ fontSize: '14px', fontWeight: 700, color: '#1e293b' }}>{item.title}</p>
+                                        <p style={{ fontSize: '14px', fontWeight: 700, color: '#1e293b' }}>{item.content_type}</p>
                                     </div>
                                 </div>
                             ))}
@@ -313,17 +313,14 @@ export default function MasterCalendar() {
                                     <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>•</span>
                                     <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text-secondary)' }}>{selectedItem.item.clients?.company_name}</span>
                                 </div>
-                                <h3 className="modal-title">{selectedItem.item.title}</h3>
+                                <h3 className="modal-title">{selectedItem.item.content_type}</h3>
                             </div>
                             <button onClick={() => setSelectedItem(null)} className="modal-close"><X size={20}/></button>
                         </div>
                         
                         <div className="detail-grid">
                             <div className="detail-info" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                                <div>
-                                    <label className="detail-label">Description</label>
-                                    <p className="detail-text">{selectedItem.item.description || 'No description provided.'}</p>
-                                </div>
+
 
                                 <div style={{ display: 'flex', gap: '24px' }}>
                                     <div>
