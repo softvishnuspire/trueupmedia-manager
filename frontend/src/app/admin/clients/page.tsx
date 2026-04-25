@@ -134,72 +134,74 @@ export default function ClientManagement() {
         {error ? (
           <div style={{ padding: '40px', textAlign: 'center', color: 'var(--danger)' }}>{error}</div>
         ) : (
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Company Name</th>
-                <th>Contact</th>
-                <th>Email</th>
-                <th>Address</th>
-                <th>Posts/mo</th>
-                <th>Reels/mo</th>
-                <th>Date Added</th>
-                <th style={{ textAlign: 'right' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <>
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <tr key={i}>
-                      <td><Skeleton className="h-4 w-32" /></td>
-                      <td><Skeleton className="h-4 w-24" /></td>
-                      <td><Skeleton className="h-4 w-40" /></td>
-                      <td><Skeleton className="h-4 w-48" /></td>
-                      <td><Skeleton className="h-4 w-12" /></td>
-                      <td><Skeleton className="h-4 w-12" /></td>
-                      <td><Skeleton className="h-4 w-20" /></td>
-                      <td style={{ textAlign: 'right' }}><Skeleton className="h-8 w-24 ml-auto" /></td>
-                    </tr>
-                  ))}
-                </>
-              ) : (
-                <>
-                  {filteredClients.map((client, index) => (
-                    <tr key={client.id || index}>
-                      <td data-label="Company Name" style={{ fontWeight: 700, color: 'var(--text-primary)' }}><span>{client.company_name}</span></td>
-                      <td data-label="Contact"><span>{client.phone || '-'}</span></td>
-                      <td data-label="Email"><span>{client.email || '-'}</span></td>
-                      <td data-label="Address" style={{ maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}><span>{client.address || '-'}</span></td>
-                      <td data-label="Posts/mo"><span>{client.posts_per_month || '0'}</span></td>
-                      <td data-label="Reels/mo"><span>{client.reels_per_month || '0'}</span></td>
-                      <td data-label="Date Added"><span>{new Date(client.created_at).toLocaleDateString()}</span></td>
-                      <td data-label="Actions" style={{ textAlign: 'right' }}>
-                        <div className="action-btns" style={{ justifyContent: 'flex-end' }}>
-                          <Link href={`/admin/client-calendar/${client.id}`} className="btn-icon">
-                            <CalendarIcon size={14} />
-                          </Link>
-                          <button className="btn-icon" onClick={() => handleEditClick(client)}>
-                            <Edit2 size={14} />
-                          </button>
-                          <button className="btn-icon delete" onClick={() => handleDeleteClick(client.id, client.company_name)}>
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {filteredClients.length === 0 && (
-                    <tr>
-                      <td colSpan={8} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                        No clients found matching your search.
-                      </td>
-                    </tr>
-                  )}
-                </>
-              )}
-            </tbody>
-          </table>
+          <div className="table-responsive">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Company Name</th>
+                  <th>Contact</th>
+                  <th>Email</th>
+                  <th>Address</th>
+                  <th>Posts/mo</th>
+                  <th>Reels/mo</th>
+                  <th>Date Added</th>
+                  <th style={{ textAlign: 'right' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <>
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <tr key={i}>
+                        <td><Skeleton className="h-4 w-32" /></td>
+                        <td><Skeleton className="h-4 w-24" /></td>
+                        <td><Skeleton className="h-4 w-40" /></td>
+                        <td><Skeleton className="h-4 w-48" /></td>
+                        <td><Skeleton className="h-4 w-12" /></td>
+                        <td><Skeleton className="h-4 w-12" /></td>
+                        <td><Skeleton className="h-4 w-20" /></td>
+                        <td style={{ textAlign: 'right' }}><Skeleton className="h-8 w-24 ml-auto" /></td>
+                      </tr>
+                    ))}
+                  </>
+                ) : (
+                  <>
+                    {filteredClients.map((client, index) => (
+                      <tr key={client.id || index}>
+                        <td data-label="Company Name" style={{ fontWeight: 700, color: 'var(--text-primary)' }}><span>{client.company_name}</span></td>
+                        <td data-label="Contact"><span>{client.phone || '-'}</span></td>
+                        <td data-label="Email"><span>{client.email || '-'}</span></td>
+                        <td data-label="Address" style={{ maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}><span>{client.address || '-'}</span></td>
+                        <td data-label="Posts/mo"><span>{client.posts_per_month || '0'}</span></td>
+                        <td data-label="Reels/mo"><span>{client.reels_per_month || '0'}</span></td>
+                        <td data-label="Date Added"><span>{new Date(client.created_at).toLocaleDateString()}</span></td>
+                        <td data-label="Actions" style={{ textAlign: 'right' }}>
+                          <div className="action-btns" style={{ justifyContent: 'flex-end' }}>
+                            <Link href={`/admin/client-calendar/${client.id}`} className="btn-icon">
+                              <CalendarIcon size={14} />
+                            </Link>
+                            <button className="btn-icon" onClick={() => handleEditClick(client)}>
+                              <Edit2 size={14} />
+                            </button>
+                            <button className="btn-icon delete" onClick={() => handleDeleteClick(client.id, client.company_name)}>
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    {filteredClients.length === 0 && (
+                      <tr>
+                        <td colSpan={8} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                          No clients found matching your search.
+                        </td>
+                      </tr>
+                    )}
+                  </>
+                )}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 

@@ -472,24 +472,30 @@
     background: var(--bg-surface);
     border-radius: 16px;
     border: 1px solid var(--border);
-    overflow-x: auto;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
-.table-card::-webkit-scrollbar {
-    height: 6px;
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
-.table-card::-webkit-scrollbar-track {
-    background: transparent;
+.table-responsive::-webkit-scrollbar {
+    height: 8px;
 }
 
-.table-card::-webkit-scrollbar-thumb {
+.table-responsive::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
     background: var(--border);
     border-radius: 10px;
 }
 
-.table-card::-webkit-scrollbar-thumb:hover {
+.table-responsive::-webkit-scrollbar-thumb:hover {
     background: var(--text-muted);
 }
 
@@ -535,7 +541,7 @@
 
 .admin-table {
     width: 100%;
-    min-width: 1000px;
+    min-width: 1200px;
     border-collapse: collapse;
 }
 
