@@ -83,10 +83,16 @@ export default function ClientManagement() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const submissionData = {
+        ...formData,
+        posts_per_month: parseInt(formData.posts_per_month) || 0,
+        reels_per_month: parseInt(formData.reels_per_month) || 0,
+      };
+
       if (editingClient) {
-        await adminApi.updateClient(editingClient.id, formData);
+        await adminApi.updateClient(editingClient.id, submissionData);
       } else {
-        await adminApi.addClient(formData);
+        await adminApi.addClient(submissionData);
       }
       setShowModal(false);
       fetchClients();
