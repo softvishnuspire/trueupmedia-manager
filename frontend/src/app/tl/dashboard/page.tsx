@@ -176,8 +176,8 @@ export default function TLDashboard() {
             const res = await tlApi.getMasterCalendar(format(currentMonth, 'yyyy-MM'), user.id);
             setCalendarData(res.data);
             
-            // Fetch emergency tasks
-            const emergencyRes = await emergencyApi.getToday();
+            // Fetch all emergency tasks
+            const emergencyRes = await emergencyApi.getAll();
             setEmergencyTasks(emergencyRes.data);
         } catch (err) { console.error(err); } finally { setLoading(false); }
     };
@@ -416,7 +416,7 @@ export default function TLDashboard() {
                     <div className="emergency-panel">
                         <div className="emergency-panel-header">
                             <ShieldAlert size={24} color="#ef4444" />
-                            <h2 className="emergency-panel-title">Today's Emergency Tasks</h2>
+                            <h2 className="emergency-panel-title">All Emergency Tasks</h2>
                         </div>
                         <div className="emergency-list">
                             {emergencyTasks.map(task => (

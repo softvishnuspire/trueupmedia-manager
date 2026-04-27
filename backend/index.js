@@ -1164,6 +1164,22 @@ app.post('/api/emergency/:id/toggle', async (req, res) => {
     }
 });
 
+app.get('/api/emergency/all', async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('content_items')
+            .select(`*, clients (company_name)`)
+            .eq('is_emergency', true)
+            .order('scheduled_datetime');
+
+        if (error) return res.status(500).json({ error: error.message });
+        res.json(data || []);
+    } catch (err) {
+        console.error('Emergency all error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 app.get('/api/emergency/today', async (req, res) => {
     try {
         const today = new Date();

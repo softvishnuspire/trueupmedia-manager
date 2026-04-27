@@ -203,6 +203,7 @@ emergencyBase.interceptors.request.use(async (config) => {
 
 export const emergencyApi = {
     getToday: () => emergencyBase.get<ContentItem[]>('/today'),
+    getAll: () => emergencyBase.get<ContentItem[]>('/all'),
     getMonth: (month: string) => emergencyBase.get<ContentItem[]>(`/month?month=${month}`),
     toggle: (id: string) => emergencyBase.post(`/${id}/toggle`),
 };
