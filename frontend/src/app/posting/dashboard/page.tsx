@@ -606,28 +606,28 @@ export default function PostingDashboard() {
                             <button onClick={() => setIsDetailsOpen(false)} className="modal-close"><X size={20} /></button>
                         </div>
                         
-                        <div className="modal-body" style={{ padding: '24px' }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-                                <div>
-                                    <div className="detail-field" style={{ marginBottom: '16px' }}>
-                                        <label className="sidebar-label" style={{ padding: 0 }}>Client</label>
-                                        <p style={{ fontWeight: 700, fontSize: '16px' }}>{activeItem.item.clients?.company_name}</p>
-                                    </div>
-                                    <div className="detail-field" style={{ marginBottom: '16px' }}>
-                                        <label className="sidebar-label" style={{ padding: 0 }}>Scheduled For</label>
-                                        <p style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <Clock size={16} />
-                                            {format(parseISO(activeItem.item.scheduled_datetime), 'PPP p')}
-                                        </p>
+                        <div className="modal-body" style={{ padding: '32px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
+                                <div className="detail-section">
+                                    <div className="detail-field">
+                                        <label className="detail-label">Client</label>
+                                        <p className="detail-value">{activeItem.item.clients?.company_name}</p>
                                     </div>
                                     <div className="detail-field">
-                                        <label className="sidebar-label" style={{ padding: 0 }}>Description</label>
-                                        <p style={{ color: 'var(--text-secondary)' }}>{activeItem.item.description || 'No description provided.'}</p>
+                                        <label className="detail-label">Scheduled For</label>
+                                        <div className="date-item">
+                                            <Clock size={16} />
+                                            <span className="date-display">{format(parseISO(activeItem.item.scheduled_datetime), 'PPP p')}</span>
+                                        </div>
+                                    </div>
+                                    <div className="detail-field">
+                                        <label className="detail-label">Description</label>
+                                        <p className="detail-text">{activeItem.item.description || 'No description provided.'}</p>
                                     </div>
                                 </div>
-                                <div>
-                                    <div className="detail-field" style={{ marginBottom: '16px' }}>
-                                        <label className="sidebar-label" style={{ padding: 0 }}>Status</label>
+                                <div className="detail-section">
+                                    <div className="detail-field">
+                                        <label className="detail-label">Status</label>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '4px' }}>
                                             <span className={`status-badge ${activeItem.item.status.toLowerCase().replace(/ /g, '-')}`}>
                                                 {activeItem.item.status}
@@ -648,8 +648,8 @@ export default function PostingDashboard() {
                                 </div>
                             </div>
 
-                            <div style={{ marginTop: '32px' }}>
-                                <label className="sidebar-label" style={{ padding: 0 }}>Status History</label>
+                            <div style={{ marginTop: '32px', borderTop: '1px solid var(--border)', paddingTop: '24px' }}>
+                                <label className="detail-label">Status History</label>
                                 <div className="history-timeline" style={{ marginTop: '16px' }}>
                                     {activeItem.history?.map((h: any, i: number) => (
                                         <div key={i} className="history-item" style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>

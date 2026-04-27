@@ -1073,7 +1073,7 @@ export default function GMDashboard() {
                                     <span className="meta-dot">•</span>
                                     <span className="meta-client">{activeItem.item.clients?.company_name}</span>
                                 </div>
-                                <h3 className="modal-title" style={{ marginTop: '8px' }}>{activeItem.item.content_type}</h3>
+                                <h3 className="modal-title" style={{ marginTop: '8px' }}>{activeItem.item.title || activeItem.item.content_type}</h3>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                 <button 
@@ -1096,11 +1096,11 @@ export default function GMDashboard() {
                             </div>
                         </div>
 
-                        <div className="detail-grid">
+                        <div className="detail-grid" style={{ padding: '32px' }}>
                             <div className="detail-main">
 
 
-                                <div className="detail-section" style={{ marginTop: '24px' }}>
+                                <div className="detail-section">
                                     <label className="detail-label">Schedule Info</label>
                                     <div className="detail-dates">
                                         <div className="date-item">
@@ -1113,13 +1113,47 @@ export default function GMDashboard() {
                                         </div>
                                     </div>
                                     <div style={{ marginTop: '16px' }}>
+                                    <div style={{ 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        justifyContent: 'space-between', 
+                                        background: 'var(--bg-elevated)', 
+                                        padding: '12px 16px', 
+                                        borderRadius: '12px', 
+                                        border: '1px solid var(--border)',
+                                        marginTop: '16px'
+                                    }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                            <ShieldAlert size={18} color={activeItem.item.is_emergency ? "#ef4444" : "var(--text-muted)"} />
+                                            <span style={{ fontSize: '14px', fontWeight: 700, color: activeItem.item.is_emergency ? "#ef4444" : "var(--text-primary)" }}>
+                                                Emergency Priority
+                                            </span>
+                                        </div>
                                         <button
                                             onClick={handleToggleEmergency}
-                                            className={`btn-emergency-toggle ${activeItem.item.is_emergency ? 'active' : 'inactive'}`}
+                                            style={{
+                                                width: '44px',
+                                                height: '24px',
+                                                borderRadius: '12px',
+                                                background: activeItem.item.is_emergency ? '#ef4444' : 'var(--bg-surface)',
+                                                border: `1px solid ${activeItem.item.is_emergency ? '#ef4444' : 'var(--border)'}`,
+                                                position: 'relative',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.3s ease'
+                                            }}
                                         >
-                                            <AlertTriangle size={16} />
-                                            {activeItem.item.is_emergency ? 'Emergency Active' : 'Mark as Emergency'}
+                                            <div style={{
+                                                width: '18px',
+                                                height: '18px',
+                                                borderRadius: '50%',
+                                                background: activeItem.item.is_emergency ? 'white' : 'var(--text-muted)',
+                                                position: 'absolute',
+                                                top: '2px',
+                                                left: activeItem.item.is_emergency ? '22px' : '2px',
+                                                transition: 'all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55)'
+                                            }}></div>
                                         </button>
+                                    </div>
                                     </div>
                                     {(() => {
                                         const isOverdue = isBefore(parseISO(activeItem.item.scheduled_datetime), new Date()) && activeItem.item.status !== 'POSTED';

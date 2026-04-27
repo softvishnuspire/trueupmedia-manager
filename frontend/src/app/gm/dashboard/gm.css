@@ -1374,12 +1374,20 @@
 
 .detail-label {
     display: block;
-    font-size: 10px;
-    font-weight: 700;
+    font-size: 11px;
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--text-muted);
+    letter-spacing: 0.15em;
+    color: var(--accent);
     margin-bottom: 8px;
+    opacity: 0.8;
+}
+
+.detail-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.4;
 }
 
 .detail-text {
@@ -1391,12 +1399,30 @@
 .detail-info {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 24px;
 }
 
 .detail-dates {
     display: flex;
-    gap: 24px;
+    gap: 32px;
+}
+
+.date-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-primary);
+}
+
+.date-display {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.date-item svg {
+    color: var(--accent);
+    opacity: 0.8;
 }
 
 .date-display {

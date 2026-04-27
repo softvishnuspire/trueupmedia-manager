@@ -352,35 +352,33 @@ export default function MasterCalendar() {
                     <div className="modal-content modal-lg">
                         <div className="modal-header">
                             <div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
                                     <span className={`type-badge ${selectedItem.item.content_type.toLowerCase()}`}>
                                         {selectedItem.item.content_type}
                                     </span>
                                     <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>•</span>
-                                    <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text-secondary)' }}>{selectedItem.item.clients?.company_name}</span>
+                                    <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)' }}>{selectedItem.item.clients?.company_name}</span>
                                 </div>
-                                <h3 className="modal-title">{selectedItem.item.content_type}</h3>
+                                <h3 className="modal-title">{selectedItem.item.title || selectedItem.item.content_type}</h3>
                             </div>
                             <button onClick={() => setSelectedItem(null)} className="modal-close"><X size={20}/></button>
                         </div>
                         
-                        <div className="detail-grid">
-                            <div className="detail-info" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-
-
-                                <div style={{ display: 'flex', gap: '24px' }}>
+                        <div className="detail-grid" style={{ padding: '32px' }}>
+                            <div className="detail-info">
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
                                     <div>
                                         <label className="detail-label">Scheduled Date</label>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                                            <CalendarIcon size={14} style={{ color: 'var(--accent)' }}/>
-                                            {format(parseISO(selectedItem.item.scheduled_datetime), 'MMM d, yyyy')}
+                                        <div className="date-item">
+                                            <CalendarIcon size={14} />
+                                            <span className="date-display">{format(parseISO(selectedItem.item.scheduled_datetime), 'MMM d, yyyy')}</span>
                                         </div>
                                     </div>
                                     <div>
                                         <label className="detail-label">Posting Time</label>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                                            <Clock size={14} style={{ color: 'var(--accent)' }}/>
-                                            {format(parseISO(selectedItem.item.scheduled_datetime), 'hh:mm a')}
+                                        <div className="date-item">
+                                            <Clock size={14} />
+                                            <span className="date-display">{format(parseISO(selectedItem.item.scheduled_datetime), 'hh:mm a')}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -405,14 +403,47 @@ export default function MasterCalendar() {
                                     <p style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-primary)' }}>{selectedItem.item.status}</p>
                                 </div>
 
-                                <button
-                                    onClick={handleToggleEmergency}
-                                    className={`btn-emergency-toggle ${selectedItem.item.is_emergency ? 'active' : ''}`}
-                                    style={{ width: '100%', marginBottom: '24px', justifyContent: 'center' }}
-                                >
-                                    <ShieldAlert size={18} />
-                                    {selectedItem.item.is_emergency ? 'Emergency Active' : 'Mark as Emergency'}
-                                </button>
+                                <div style={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'space-between', 
+                                    background: 'var(--bg-elevated)', 
+                                    padding: '12px 16px', 
+                                    borderRadius: '12px', 
+                                    border: '1px solid var(--border)',
+                                    marginBottom: '24px'
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <ShieldAlert size={18} color={selectedItem.item.is_emergency ? "#ef4444" : "var(--text-muted)"} />
+                                        <span style={{ fontSize: '14px', fontWeight: 700, color: selectedItem.item.is_emergency ? "#ef4444" : "var(--text-primary)" }}>
+                                            Emergency Priority
+                                        </span>
+                                    </div>
+                                    <button
+                                        onClick={handleToggleEmergency}
+                                        style={{
+                                            width: '44px',
+                                            height: '24px',
+                                            borderRadius: '12px',
+                                            background: selectedItem.item.is_emergency ? '#ef4444' : 'var(--bg-surface)',
+                                            border: `1px solid ${selectedItem.item.is_emergency ? '#ef4444' : 'var(--border)'}`,
+                                            position: 'relative',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.3s ease'
+                                        }}
+                                    >
+                                        <div style={{
+                                            width: '18px',
+                                            height: '18px',
+                                            borderRadius: '50%',
+                                            background: selectedItem.item.is_emergency ? 'white' : 'var(--text-muted)',
+                                            position: 'absolute',
+                                            top: '2px',
+                                            left: selectedItem.item.is_emergency ? '22px' : '2px',
+                                            transition: 'all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55)'
+                                        }}></div>
+                                    </button>
+                                </div>
 
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                                     <label className="detail-label" style={{ marginBottom: 0 }}>Activity Log</label>
