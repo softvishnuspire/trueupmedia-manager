@@ -946,7 +946,33 @@ export default function GMDashboard() {
                                                 className={`calendar-day ${viewMode === 'week' ? 'weekly-cell' : ''} ${!isSameMonth(day, currentMonth) && viewMode === 'month' ? 'other-month' : ''} ${isSameDay(day, new Date()) ? 'today' : ''}`}
                                                 style={{ minHeight: viewMode === 'week' ? '300px' : '110px', cursor: (dayContent.length > 0 || view === 'client') ? 'pointer' : 'default' }}
                                             >
-                                                <span className="day-number">{format(day, 'd')}</span>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                                    <span className="day-number">{format(day, 'd')}</span>
+                                                    {!isMasterMode && view === 'client' && (
+                                                        <button 
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleAddClick(day);
+                                                            }}
+                                                            className="add-task-btn"
+                                                            style={{
+                                                                background: 'rgba(255, 255, 255, 0.05)',
+                                                                border: '1px solid var(--border)',
+                                                                borderRadius: '6px',
+                                                                padding: '4px',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                color: 'var(--text-muted)',
+                                                                cursor: 'pointer',
+                                                                transition: 'all 0.2s ease'
+                                                            }}
+                                                            title="Add Task"
+                                                        >
+                                                            <Plus size={14} />
+                                                        </button>
+                                                    )}
+                                                </div>
                                                 <div className="day-items desktop-only">
                                                     {dayContent.map(item => (
                                                         <div
@@ -1062,6 +1088,34 @@ export default function GMDashboard() {
                                     </div>
                                 </div>
                             ))}
+
+                            {!isMasterMode && view === 'client' && (
+                                <button 
+                                    onClick={() => {
+                                        setDailyAgenda(null);
+                                        handleAddClick(dailyAgenda.date);
+                                    }}
+                                    style={{
+                                        marginTop: '8px',
+                                        padding: '14px',
+                                        borderRadius: '12px',
+                                        background: 'var(--accent)',
+                                        color: 'white',
+                                        border: 'none',
+                                        fontWeight: 800,
+                                        fontSize: '14px',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '8px',
+                                        boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)'
+                                    }}
+                                >
+                                    <Plus size={18} />
+                                    Add New Task
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
