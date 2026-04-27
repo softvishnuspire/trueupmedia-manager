@@ -44,6 +44,15 @@ export interface ContentItem {
 }
 
 export interface StatusHistoryItem {
+    id: string;
+    changed_at: string;
+    new_status: string;
+    note?: string;
+    changed_by?: string;
+    users?: {
+        name?: string;
+        role_identifier?: string;
+    };
     [key: string]: unknown;
 }
 

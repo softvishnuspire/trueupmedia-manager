@@ -756,10 +756,10 @@ app.post('/api/admin/content', requireRoles(['ADMIN']), async (req, res) => {
 
 app.put('/api/admin/content/:id', requireRoles(['ADMIN']), async (req, res) => {
     const { id } = req.params;
-    const { title, description, scheduled_datetime, is_rescheduled } = req.body;
+    const { title, description, scheduled_datetime, is_rescheduled, content_type } = req.body;
     const { data, error } = await supabase
         .from('content_items')
-        .update({ title, description, scheduled_datetime, is_rescheduled })
+        .update({ title, description, scheduled_datetime, is_rescheduled, content_type })
         .eq('id', id)
         .select();
     if (error) return res.status(500).json({ error: error.message });

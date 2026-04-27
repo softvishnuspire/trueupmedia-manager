@@ -44,7 +44,7 @@ import {
     AlertTriangle,
     ShieldAlert
 } from 'lucide-react';
-import { gmApi, emergencyApi } from '@/lib/api';
+import { gmApi, emergencyApi, ContentItem, PocNote, StatusHistoryItem } from '@/lib/api';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import ThemeToggle from '@/components/ThemeToggle';
@@ -54,27 +54,9 @@ import NotificationBell from '@/components/NotificationBell';
 import ScheduleExport from '@/components/ScheduleExport';
 import './gm.css';
 
-// Matches actual DB: content_items has id, client_id, title, scheduled_datetime, status, content_type, description
-interface ContentItem {
-    id: string;
-    title: string;
-    description: string;
-    content_type: 'Post' | 'Reel';
-    scheduled_datetime: string;
-    status: string;
-    client_id: string;
-    is_rescheduled?: boolean;
-    is_emergency?: boolean;
-    clients?: { company_name: string };
-}
-
-interface PocNote {
-    id: string;
-    team_lead_id: string;
-    note_date: string;
-    note_text: string;
-    created_at: string;
-    users?: { name?: string; role_identifier?: string };
+interface ContentDetails {
+    item: ContentItem;
+    history: StatusHistoryItem[];
 }
 
 export default function GMDashboard() {
@@ -105,7 +87,7 @@ export default function GMDashboard() {
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [editingItem, setEditingItem] = useState<ContentItem | null>(null);
-    const [activeItem, setActiveItem] = useState<any>(null);
+    const [activeItem, setActiveItem] = useState<ContentDetails | null>(null);
     const [statusNote, setStatusNote] = useState('');
     const [user, setUser] = useState<any>(null);
     const [isRescheduling, setIsRescheduling] = useState(false);
@@ -119,28 +101,9 @@ export default function GMDashboard() {
         description: ''
     });
 
-    useEffect(() => {
-        fetchClients();
-        const fetchUser = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) setUser(user);
-        };
-        fetchUser();
-    }, []);
 
-    useEffect(() => {
-        if (view === 'master') {
-            fetchMasterCalendar();
-        } else if (view === 'client' && selectedClient && selectedClient !== 'all') {
-            fetchClientCalendar();
-        } else if (view === 'teams') {
-            fetchTeamLeads();
-        } else if (view === 'poc') {
-            fetchPocNotes();
-        } else if (view === 'dashboard') {
-            fetchDashboardStats();
-        }
-    }, [selectedClient, selectedType, currentMonth, view, clients.length, teamLeads.length]);
+
+
 
     const fetchPocNotes = async () => {
         setLoading(true);
@@ -246,6 +209,29 @@ export default function GMDashboard() {
 
         } catch (err) { console.error(err); } finally { setLoading(false); }
     };
+    
+    useEffect(() => {
+        if (view === 'master') {
+            fetchMasterCalendar();
+        } else if (view === 'client' && selectedClient && selectedClient !== 'all') {
+            fetchClientCalendar();
+        } else if (view === 'teams') {
+            fetchTeamLeads();
+        } else if (view === 'poc') {
+            fetchPocNotes();
+        } else if (view === 'dashboard') {
+            fetchDashboardStats();
+        }
+    }, [selectedClient, selectedType, currentMonth, view, clients.length, teamLeads.length]);
+
+    useEffect(() => {
+        fetchClients();
+        const fetchUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) setUser(user);
+        };
+        fetchUser();
+    }, []);
 
     const days = viewMode === 'month'
         ? eachDayOfInterval({
@@ -1006,9 +992,9 @@ export default function GMDashboard() {
                                                 onClick={() => {
                                                     if (dayContent.length > 0 && !isPocView) {
                                                         if (window.innerWidth <= 768) {
-                                                            setDailyAgenda({ date: day, items: dayContent });
+                                                            setDailyAgenda({ date: day, items: dayContent as ContentItem[] });
                                                         } else {
-                                                            handleItemClick(dayContent[0]);
+                                                            handleItemClick(dayContent[0] as ContentItem);
                                                         }
                                                     } else if (view === 'client') {
                                                         handleAddClick(day);
@@ -1454,7 +1440,7 @@ export default function GMDashboard() {
                                     return flow.map((status: string, idx: number) => {
                                         const isCompleted = idx < currentIdx || currentStatus === 'POSTED';
                                         const isCurrent = idx === currentIdx && currentStatus !== 'POSTED';
-                                        const historyEntry = activeItem.history.find((h: any) => h.new_status === status);
+                                        const historyEntry = activeItem.history.find((h: StatusHistoryItem) => h.new_status === status);
 
                                         return (
                                             <div key={status} className={`timeline-step ${isCompleted ? 'completed' : ''} ${isCurrent ? 'current' : ''}`}>

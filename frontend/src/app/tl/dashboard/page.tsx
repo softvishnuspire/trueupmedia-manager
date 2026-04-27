@@ -37,7 +37,7 @@ import {
     Menu
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { tlApi, gmApi, emergencyApi } from '@/lib/api';
+import { tlApi, gmApi, emergencyApi, ContentItem, PocNote, StatusHistoryItem } from '@/lib/api';
 import { createClient } from '@/utils/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import NotificationBell from '@/components/NotificationBell';
@@ -45,26 +45,9 @@ import ScheduleExport from '@/components/ScheduleExport';
 import ThemeToggle from '@/components/ThemeToggle';
 import '../../admin/admin.css'; // Using Admin Panel UI styles
 
-// Reusing interfaces from GM/Admin
-interface ContentItem {
-    id: string;
-    title: string;
-    description: string;
-    content_type: 'Post' | 'Reel';
-    scheduled_datetime: string;
-    status: string;
-    client_id: string;
-    is_emergency?: boolean;
-    clients?: { company_name: string };
-}
-
-interface PocNote {
-    id: string;
-    team_lead_id: string;
-    note_date: string;
-    note_text: string;
-    created_at: string;
-    users?: { name?: string; role_identifier?: string };
+interface ContentDetails {
+    item: ContentItem;
+    history: StatusHistoryItem[];
 }
 
 const normalizeRole = (role?: string | null) => (role || '').trim().toLowerCase().replace(/[_\s]+/g, ' ');
@@ -110,62 +93,17 @@ export default function TLDashboard() {
     
     // Details modal state
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-    const [activeItem, setActiveItem] = useState<any>(null);
+    const [activeItem, setActiveItem] = useState<ContentDetails | null>(null);
     const [statusNote, setStatusNote] = useState('');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
 
     const isMasterMode = view === 'master';
 
-    useEffect(() => {
-        const init = async () => {
-            setLoading(true);
-            try {
-                const { data: { user } } = await supabase.auth.getUser();
-                
-                if (!user) {
-                    window.location.href = '/';
-                    return;
-                }
-
-                // Verify role
-                const { data: profileData, error: profileError } = await supabase
-                    .from('users')
-                    .select('*')
-                    .eq('user_id', user.id)
-                    .single();
-
-                const role = normalizeRole(profileData?.role);
-                const isTeamLead = ['tl', 'tl1', 'tl2', 'team lead'].includes(role);
-
-                if (profileError || !profileData || !isTeamLead) {
-                    console.warn('Profile validation check:', { role: profileData?.role, isTeamLead });
-                }
-
-                setUser(user);
-                setProfile(profileData);
-                await fetchClients(user.id);
-            } catch (err) {
-                console.error('Initialization error:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        init();
-    }, []);
 
 
-    useEffect(() => {
-        if (user) {
-            if (view === 'master' || view === 'dashboard') {
-                fetchMasterCalendar();
-            } else if (view === 'poc') {
-                fetchPocNotes();
-            } else if (view === 'client' && selectedClient) {
-                fetchClientCalendar();
-            }
-        }
-    }, [selectedClient, currentMonth, view, user]);
+
+
 
     const fetchClients = async (tlId: string) => {
         try {
@@ -209,9 +147,6 @@ export default function TLDashboard() {
         setLoading(true);
         try {
             const res = await tlApi.getPocNotes(format(currentMonth, 'yyyy-MM'), user.id);
-            // #region agent log
-            fetch('http://127.0.0.1:7696/ingest/96709530-e5a7-4fe9-9900-96c06c55f127',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'c23e7e'},body:JSON.stringify({sessionId:'c23e7e',runId:'pre-fix',hypothesisId:'H1',location:'tl/dashboard/page.tsx:fetchPocNotes',message:'POC notes payload shape',data:{count:res.data?.length||0,first:res.data?.[0]?{id:res.data[0].id,note_date:res.data[0].note_date,has_content_type:Object.prototype.hasOwnProperty.call(res.data[0],'content_type'),keys:Object.keys(res.data[0]).slice(0,8)}:null},timestamp:Date.now()})}).catch(()=>{});
-            // #endregion
             setPocNotes(res.data || []);
         } catch (err) {
             console.error('Error fetching POC notes:', err);
@@ -221,12 +156,53 @@ export default function TLDashboard() {
     };
 
     useEffect(() => {
-        const source = view === 'poc' ? pocNotes : calendarData;
-        const missingContentType = (source as any[]).filter((item: any) => !item?.content_type).length;
-        // #region agent log
-        fetch('http://127.0.0.1:7696/ingest/96709530-e5a7-4fe9-9900-96c06c55f127',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'c23e7e'},body:JSON.stringify({sessionId:'c23e7e',runId:'pre-fix',hypothesisId:'H2',location:'tl/dashboard/page.tsx:viewDataSummary',message:'Current view data summary',data:{view,total:source.length,missing_content_type:missingContentType},timestamp:Date.now()})}).catch(()=>{});
-        // #endregion
-    }, [view, pocNotes, calendarData]);
+        if (user) {
+            if (view === 'master' || view === 'dashboard') {
+                fetchMasterCalendar();
+            } else if (view === 'poc') {
+                fetchPocNotes();
+            } else if (view === 'client' && selectedClient) {
+                fetchClientCalendar();
+            }
+        }
+    }, [selectedClient, currentMonth, view, user]);
+
+    useEffect(() => {
+        const init = async () => {
+            setLoading(true);
+            try {
+                const { data: { user: authUser } } = await supabase.auth.getUser();
+                
+                if (!authUser) {
+                    window.location.href = '/';
+                    return;
+                }
+
+                // Verify role
+                const { data: profileData, error: profileError } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('user_id', authUser.id)
+                    .single();
+
+                const role = normalizeRole(profileData?.role);
+                const isTeamLead = ['tl', 'tl1', 'tl2', 'team lead'].includes(role);
+
+                if (profileError || !profileData || !isTeamLead) {
+                    console.warn('Profile validation check:', { role: profileData?.role, isTeamLead });
+                }
+
+                setUser(authUser);
+                setProfile(profileData);
+                await fetchClients(authUser.id);
+            } catch (err) {
+                console.error('Initialization error:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        init();
+    }, []);
 
     const handlePocDayClick = (date: Date) => {
         setSelectedPocDate(date);
@@ -276,10 +252,10 @@ export default function TLDashboard() {
             
             console.log('Updating status:', { newStatus, note: statusNote, actorId });
             
-            // Pass the note - ensure it's not just an empty string if we want it to be recognized as 'null' in DB
+            if (!activeItem) return;
             await gmApi.updateStatus(activeItem.item.id, newStatus, statusNote.trim() || undefined, actorId);
             
-            setStatusNote(''); // Clear note after success
+            if (!activeItem) return;
             const res = await gmApi.getContentDetails(activeItem.item.id);
 
             setActiveItem(res.data);
@@ -655,14 +631,6 @@ export default function TLDashboard() {
                                                 const itemDate = parseISO(item.scheduled_datetime);
                                                 return isSameDay(itemDate, day);
                                             });
-                                        if (dayContent.length > 0) {
-                                            const hasMissingContentType = dayContent.some((item: any) => !item?.content_type);
-                                            if (hasMissingContentType) {
-                                                // #region agent log
-                                                fetch('http://127.0.0.1:7696/ingest/96709530-e5a7-4fe9-9900-96c06c55f127',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'c23e7e'},body:JSON.stringify({sessionId:'c23e7e',runId:'pre-fix',hypothesisId:'H3',location:'tl/dashboard/page.tsx:days.map',message:'Day content has items without content_type',data:{isPocView,day:format(day,'yyyy-MM-dd'),sample:dayContent.slice(0,2).map((i:any)=>({id:i?.id,content_type:i?.content_type,note_date:i?.note_date}))},timestamp:Date.now()})}).catch(()=>{});
-                                                // #endregion
-                                            }
-                                        }
                                         return (
                                             <div 
                                                 key={idx} 
@@ -686,32 +654,24 @@ export default function TLDashboard() {
                                                                     handleItemClick(item);
                                                                 }
                                                             }}
-                                                            className={isPocView ? 'content-item post' : `content-item ${item.content_type.toLowerCase()} ${item.is_emergency ? 'emergency' : ''}`}
-                                                            title={isPocView ? item.note_text : item.content_type}
+                                                            className={isPocView ? 'content-item post' : `content-item ${(item as ContentItem).content_type.toLowerCase()} ${(item as ContentItem).is_emergency ? 'emergency' : ''}`}
+                                                            title={isPocView ? (item as PocNote).note_text : (item as ContentItem).content_type}
                                                         >
-                                                            {isPocView ? <FileText size={10}/> : item.content_type === 'Post' ? <FileText size={10}/> : <Video size={10}/>}
+                                                            {isPocView ? <FileText size={10}/> : (item as ContentItem).content_type === 'Post' ? <FileText size={10}/> : <Video size={10}/>}
                                                             <span className="truncate" style={{ fontSize: '9px' }}>
                                                                 {isPocView
-                                                                    ? item.note_text
-                                                                    : `${view === 'master' ? `[${item.clients?.company_name?.substring(0,3)}] ` : ''}${item.content_type}`}
+                                                                    ? (item as PocNote).note_text
+                                                                    : `${view === 'master' ? `[${(item as ContentItem).clients?.company_name?.substring(0,3)}] ` : ''}${(item as ContentItem).content_type}`}
                                                             </span>
                                                         </div>
                                                     ))}
                                                 </div>
                                                 <div className="mobile-day-indicators">
                                                     {dayContent.map(item => (
-                                                        <>
-                                                            {/* #region agent log */}
-                                                            {(() => {
-                                                                fetch('http://127.0.0.1:7696/ingest/96709530-e5a7-4fe9-9900-96c06c55f127',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'c23e7e'},body:JSON.stringify({sessionId:'c23e7e',runId:'pre-fix',hypothesisId:'H4',location:'tl/dashboard/page.tsx:mobile-day-indicators',message:'Mobile dot item shape before className compute',data:{view,item_id:item?.id||null,content_type:item?.content_type??null,item_keys:item?Object.keys(item).slice(0,10):[]},timestamp:Date.now()})}).catch(()=>{});
-                                                                return null;
-                                                            })()}
-                                                            {/* #endregion */}
-                                                            <div 
-                                                                key={item.id}
-                                                                className={`mobile-dot ${(item.content_type || '').toLowerCase()} ${item.is_emergency ? 'emergency' : ''}`}
-                                                            ></div>
-                                                        </>
+                                                        <div 
+                                                            key={item.id}
+                                                            className={`mobile-dot ${isPocView ? 'post' : ((item as ContentItem).content_type || '').toLowerCase()} ${!isPocView && (item as ContentItem).is_emergency ? 'emergency' : ''}`}
+                                                        ></div>
                                                     ))}
                                                 </div>
                                             </div>
@@ -897,7 +857,7 @@ export default function TLDashboard() {
                                     return flow.map((status: string, idx: number) => {
                                         const isCompleted = idx < currentIdx || currentStatus === 'POSTED';
                                         const isCurrent = idx === currentIdx && currentStatus !== 'POSTED';
-                                        const historyEntry = activeItem.history.find((h: any) => h.new_status === status);
+                                        const historyEntry = activeItem.history.find((h: StatusHistoryItem) => h.new_status === status);
 
                                         return (
                                             <div key={status} style={{ 
