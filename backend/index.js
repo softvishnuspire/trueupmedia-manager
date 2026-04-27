@@ -1445,10 +1445,17 @@ app.post('/api/emergency/:id/toggle', async (req, res) => {
 
 app.get('/api/emergency/all', async (req, res) => {
     try {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        const dayStart = `${yyyy}-${mm}-${dd}T00:00:00`;
+        const dayEnd = `${yyyy}-${mm}-${dd}T23:59:59`;
+
         const { data, error } = await supabase
             .from('content_items')
             .select(`*, clients (company_name)`)
-            .eq('is_emergency', true)
+            .or(`is_emergency.eq.true,and(scheduled_datetime.gte.${dayStart},scheduled_datetime.lte.${dayEnd})`)
             .order('scheduled_datetime');
 
         if (error) return res.status(500).json({ error: error.message });
@@ -1471,9 +1478,7 @@ app.get('/api/emergency/today', async (req, res) => {
         const { data, error } = await supabase
             .from('content_items')
             .select(`*, clients (company_name)`)
-            .eq('is_emergency', true)
-            .gte('scheduled_datetime', dayStart)
-            .lte('scheduled_datetime', dayEnd)
+            .or(`is_emergency.eq.true,and(scheduled_datetime.gte.${dayStart},scheduled_datetime.lte.${dayEnd})`)
             .order('scheduled_datetime');
 
         if (error) return res.status(500).json({ error: error.message });
