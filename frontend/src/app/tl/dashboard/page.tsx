@@ -240,14 +240,14 @@ export default function TLDashboard() {
                 <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)}></div>
             )}
 
-            {/* Sidebar - Using Admin Sidebar Style */}
+            {/* Sidebar */}
             <aside className={`sidebar ${isSidebarOpen ? 'mobile-open' : ''}`}>
-                <div className="logo-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                <div className="logo-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '0 8px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div className="logo-icon">T</div>
-                        <span>TrueUp Media</span>
+                        <img src="/logo.png" alt="TrueUp Media" className="logo-img" style={{ height: '28px', width: 'auto' }} />
+                        <span style={{ color: 'var(--text-muted)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '2px' }}>TL</span>
                     </div>
-                    <button onClick={() => setIsSidebarOpen(false)} className="sidebar-close">
+                    <button onClick={() => setIsSidebarOpen(false)} className="sidebar-close" style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
                         <X size={24} />
                     </button>
                 </div>
@@ -354,12 +354,15 @@ export default function TLDashboard() {
 
             {/* Main Content */}
             <main className="main-content">
+                {/* Mobile Header Top */}
                 <div className="mobile-header-top">
                     <div className="menu-toggle" onClick={() => setIsSidebarOpen(true)}>
                         <Menu size={24} />
                     </div>
-                    <div style={{ fontWeight: 800, fontSize: '18px', color: 'var(--accent)' }}>TrueUp</div>
-                    <div style={{ width: '40px' }}></div>
+                    <img src="/logo.png" alt="TrueUp Media" className="logo-img" style={{ height: '24px', width: 'auto' }} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <NotificationBell />
+                    </div>
                 </div>
 
                 <header className="page-header">
@@ -509,7 +512,10 @@ export default function TLDashboard() {
                     <div className="calendar-card">
                         <div className="calendar-grid">
                             {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
-                                <div key={day} className="calendar-header-cell">{day}</div>
+                                <div key={day} className="calendar-header-cell">
+                                    <span className="desktop-day">{day}</span>
+                                    <span className="mobile-day">{day.charAt(0)}</span>
+                                </div>
                             ))}
 
                             {loading ? (
@@ -537,7 +543,7 @@ export default function TLDashboard() {
                                                 className={`calendar-day ${!isSameMonth(day, currentMonth) ? 'other-month' : ''} ${isSameDay(day, new Date()) ? 'today' : ''}`}
                                             >
                                                 <span className="day-number">{format(day, 'd')}</span>
-                                                <div className="day-items">
+                                                <div className="day-items desktop-only">
                                                     {dayContent.map(item => (
                                                         <div 
                                                             key={item.id}
@@ -551,6 +557,14 @@ export default function TLDashboard() {
                                                                 {item.content_type}
                                                             </span>
                                                         </div>
+                                                    ))}
+                                                </div>
+                                                <div className="mobile-day-indicators">
+                                                    {dayContent.map(item => (
+                                                        <div 
+                                                            key={item.id}
+                                                            className={`mobile-dot ${item.content_type.toLowerCase()} ${item.is_emergency ? 'emergency' : ''}`}
+                                                        ></div>
                                                     ))}
                                                 </div>
                                             </div>

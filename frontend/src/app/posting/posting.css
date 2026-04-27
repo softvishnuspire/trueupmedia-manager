@@ -544,90 +544,99 @@
     to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .posting-stats-row {
-        grid-template-columns: 1fr;
-    }
-
-    .queue-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 14px;
-        padding: 16px;
-    }
-
-    .queue-item-right {
-        width: 100%;
-        justify-content: space-between;
-    }
-
-    .btn-mark-posted {
-        flex: 1;
-        justify-content: center;
-    }
-
-    .queue-time-badge {
-        flex-direction: row;
-        gap: 4px;
-        min-width: auto;
-        padding: 8px 12px;
-    }
-
-    .posting-detail-card {
-        padding: 24px 16px;
-    }
-}
-
-/* Sidebar Navigation Scrolling */
+/* Mobile Responsiveness (GM Style) */
 .mobile-header-top {
     display: none;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
-    background: var(--bg-surface);
-    border-bottom: 1px solid var(--border);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
 }
 
-@media (max-width: 768px) {
-    .mobile-header-top {
-        display: flex;
-    }
-
+@media (max-width: 1024px) {
     .sidebar {
-        position: fixed;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        width: 280px;
-        z-index: 5000;
-        transform: translateX(-100%);
-        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        background: rgba(15, 23, 42, 0.98);
-        backdrop-filter: blur(20px);
-        border-right: 1px solid var(--border);
+        position: fixed !important;
+        left: -280px !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        width: 280px !important;
+        z-index: 5000 !important;
+        transform: none !important;
+        transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        background: var(--bg-surface) !important;
+        border-right: 1px solid var(--border) !important;
     }
 
     .sidebar.open {
-        transform: translateX(0);
-        box-shadow: 20px 0 80px rgba(0, 0, 0, 0.6);
+        left: 0 !important;
+        box-shadow: 20px 0 80px rgba(0, 0, 0, 0.6) !important;
     }
 
     .sidebar-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(2, 6, 23, 0.7);
-        backdrop-filter: blur(10px);
-        z-index: 4000;
-        animation: fadeIn 0.4s ease;
+        position: fixed !important;
+        inset: 0 !important;
+        background: rgba(15, 23, 42, 0.6) !important;
+        backdrop-filter: blur(8px) !important;
+        z-index: 4000 !important;
     }
 
     .main-content {
-        margin-left: 0;
-        padding: 20px 16px;
+        margin-left: 0 !important;
+        padding: 80px 16px 24px !important;
+        width: 100% !important;
+    }
+
+    .mobile-header-top {
+        display: flex !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        height: 64px !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 0 16px !important;
+        background: var(--bg-surface) !important;
+        backdrop-filter: blur(10px) !important;
+        border-bottom: 1px solid var(--border) !important;
+        z-index: 90 !important;
+    }
+
+    .menu-toggle {
+        width: 40px !important;
+        height: 40px !important;
+        border-radius: 10px !important;
+        border: 1px solid var(--border) !important;
+        background: var(--bg-elevated) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        color: var(--accent) !important;
+        cursor: pointer !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .progress-meter-card {
+        flex-direction: column !important;
+        gap: 16px !important;
+        align-items: flex-start !important;
+        padding: 20px !important;
+    }
+    
+    .meter-container {
+        width: 100% !important;
+    }
+
+    .posting-stats-row {
+        grid-template-columns: 1fr !important;
+    }
+
+    .queue-item {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 14px !important;
+    }
+
+    .queue-item-right {
+        width: 100% !important;
+        justify-content: space-between !important;
     }
 }
 
@@ -994,5 +1003,150 @@
 .date-item svg {
     color: var(--accent);
     opacity: 0.8;
+}
+
+/* ─── Mobile Dot Calendar Styles (GM Unified) ─── */
+.mobile-day, .mobile-day-indicators {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .desktop-day, .desktop-only {
+        display: none !important;
+    }
+
+    .mobile-day {
+        display: block !important;
+        font-weight: 800;
+        color: var(--text-muted);
+    }
+
+    .mobile-day-indicators {
+        display: flex !important;
+        flex-wrap: wrap;
+        gap: 3px;
+        margin-top: 8px;
+        justify-content: center;
+        width: 100%;
+        padding: 0 4px;
+    }
+
+    .mobile-dot {
+        flex: 0 0 24px;
+        height: 4px;
+        border-radius: 2px;
+        background: var(--accent);
+        box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+
+    .mobile-dot.post { background: #3b82f6 !important; }
+    .mobile-dot.reel { background: #a855f7 !important; }
+    .mobile-dot.rescheduled { background: #ef4444 !important; }
+    .mobile-dot.emergency { background: #ef4444 !important; box-shadow: 0 0 8px rgba(239, 68, 68, 0.6); }
+
+    .calendar-day {
+        min-height: 80px !important;
+        padding: 6px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+    }
+
+    .day-number {
+        font-size: 11px !important;
+        margin-bottom: 2px !important;
+    }
+
+    /* Aggressively hide all desktop event blocks on mobile */
+    .day-items.desktop-only, .content-item {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .view-mode-toggle {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        width: 100% !important;
+        background: var(--bg-elevated) !important;
+        padding: 4px !important;
+        border-radius: 12px !important;
+        margin-right: 0 !important;
+        margin-bottom: 12px !important;
+    }
+
+    .view-mode-btn {
+        width: 100% !important;
+        text-align: center !important;
+    }
+
+    .month-nav {
+        width: 100% !important;
+        justify-content: space-between !important;
+        margin-bottom: 12px !important;
+    }
+
+    .month-label {
+        font-size: 18px !important;
+        font-weight: 800 !important;
+        width: auto !important;
+    }
+
+    .export-btn {
+        width: 100% !important;
+        justify-content: center !important;
+        padding: 14px 20px !important;
+        margin-bottom: 12px !important;
+    }
+
+    /* Premium Mobile Header Fixes */
+    .page-header {
+        display: block !important;
+        margin: 0 -20px 24px !important;
+        padding: 80px 20px 24px !important;
+        background: rgba(15, 23, 42, 0.6) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        backdrop-filter: blur(12px) !important;
+        width: auto !important;
+    }
+
+    .header-content {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 20px !important;
+        width: 100% !important;
+    }
+
+    .header-info {
+        width: 100% !important;
+    }
+
+    .page-title {
+        font-size: 32px !important;
+        font-weight: 900 !important;
+        line-height: 1 !important;
+        letter-spacing: -0.04em !important;
+        margin-bottom: 8px !important;
+        color: #fff !important;
+    }
+
+    .page-subtitle {
+        font-size: 14px !important;
+        line-height: 1.4 !important;
+        color: #94a3b8 !important;
+        margin-bottom: 0 !important;
+        display: block !important;
+    }
+
+    .header-controls {
+        width: 100% !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+    }
 }
 

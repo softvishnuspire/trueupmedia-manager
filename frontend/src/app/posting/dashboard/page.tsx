@@ -39,9 +39,9 @@ import {
 import { postingApi, emergencyApi } from '@/lib/api';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
-import ThemeToggle from '@/components/ThemeToggle';
 import { Skeleton } from '@/components/ui/skeleton';
 import NotificationBell from '@/components/NotificationBell';
+import ThemeToggle from '@/components/ThemeToggle';
 
 interface ContentItem {
     id: string;
@@ -243,8 +243,14 @@ export default function PostingDashboard() {
 
             {/* Sidebar */}
             <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
-                <div className="logo-container">
-                    <img src="/logo.png" alt="TrueUp Media" className="logo-img" style={{ height: '42px', width: 'auto' }} />
+                <div className="logo-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '0 8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <img src="/logo.png" alt="TrueUp Media" className="logo-img" style={{ height: '28px', width: 'auto' }} />
+                        <span style={{ color: 'var(--text-muted)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '2px' }}>POSTING</span>
+                    </div>
+                    <button onClick={() => setIsSidebarOpen(false)} className="sidebar-close" style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                        <X size={24} />
+                    </button>
                 </div>
 
                 <nav className="flex-1 sidebar-nav">
@@ -319,7 +325,9 @@ export default function PostingDashboard() {
                         <Menu size={24} />
                     </div>
                     <img src="/logo.png" alt="TrueUp Media" style={{ height: '24px', width: 'auto' }} />
-                    <div style={{ width: '40px' }}></div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <NotificationBell />
+                    </div>
                 </div>
 
                 <header className="page-header">
@@ -593,6 +601,14 @@ export default function PostingDashboard() {
                                                             {item.title}
                                                         </span>
                                                     </div>
+                                                ))}
+                                            </div>
+                                            <div className="mobile-day-indicators">
+                                                {dayContent.map(item => (
+                                                    <div 
+                                                        key={item.id}
+                                                        className={`mobile-dot ${item.content_type.toLowerCase()} ${item.is_emergency ? 'emergency' : ''}`}
+                                                    ></div>
                                                 ))}
                                             </div>
                                         </div>

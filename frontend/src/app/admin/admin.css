@@ -953,64 +953,80 @@
     letter-spacing: -0.02em;
 }
 
-/* Mobile Sidebar Styling */
+/* Mobile Responsiveness (GM Style) */
+.mobile-header-top {
+    display: none;
+}
+
 @media (max-width: 1024px) {
     .sidebar {
-        position: fixed;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        width: 280px;
-        z-index: 5000;
-        transform: translateX(-100%);
-        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        background: var(--bg-surface);
-        border-right: 1px solid var(--border);
+        position: fixed !important;
+        left: -280px !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        width: 280px !important;
+        z-index: 5000 !important;
+        transform: none !important;
+        transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        background: var(--bg-surface) !important;
+        border-right: 1px solid var(--border) !important;
     }
 
     .sidebar.mobile-open {
-        transform: translateX(0);
-        box-shadow: 20px 0 80px rgba(0, 0, 0, 0.6);
+        left: 0 !important;
+        box-shadow: 20px 0 80px rgba(0, 0, 0, 0.6) !important;
     }
 
     .main-content {
-        margin-left: 0;
+        margin-left: 0 !important;
+        padding: 80px 16px 24px !important;
     }
 
-    .mobile-menu-toggle {
-        display: flex;
-        position: fixed;
-        bottom: 24px;
-        right: 24px;
-        width: 56px;
-        height: 56px;
-        background: var(--accent);
-        color: white;
-        border-radius: 16px;
-        align-items: center;
-        justify-content: center;
-        z-index: 100;
-        box-shadow: 0 8px 24px var(--accent-glow);
-        border: none;
-        cursor: pointer;
+    .mobile-header-top {
+        display: flex !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        height: 64px !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 0 16px !important;
+        background: var(--bg-surface) !important;
+        backdrop-filter: blur(10px) !important;
+        border-bottom: 1px solid var(--border) !important;
+        z-index: 90 !important;
+    }
+
+    .menu-toggle {
+        width: 40px !important;
+        height: 40px !important;
+        border-radius: 10px !important;
+        border: 1px solid var(--border) !important;
+        background: var(--bg-elevated) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        color: var(--accent) !important;
+        cursor: pointer !important;
     }
 
     .sidebar-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(2, 6, 23, 0.7);
-        backdrop-filter: blur(10px);
-        z-index: 4000;
+        position: fixed !important;
+        inset: 0 !important;
+        background: rgba(2, 6, 23, 0.7) !important;
+        backdrop-filter: blur(10px) !important;
+        z-index: 4000 !important;
     }
 
     .sidebar-close {
-        display: flex;
-        background: transparent;
-        border: none;
-        color: var(--text-muted);
-        cursor: pointer;
-        padding: 4px;
-        margin-left: auto;
+        display: flex !important;
+        background: transparent !important;
+        border: none !important;
+        color: var(--text-muted) !important;
+        cursor: pointer !important;
+        padding: 4px !important;
+        margin-left: auto !important;
     }
 }
 
@@ -1469,4 +1485,164 @@
 
 .btn-emergency-toggle:hover {
     opacity: 0.9;
+}
+
+/* ─── Mobile Dot Calendar Styles (GM Unified) ─── */
+.mobile-day, .mobile-day-indicators {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .desktop-day, .desktop-only {
+        display: none !important;
+    }
+
+    .mobile-day {
+        display: block !important;
+        font-weight: 800;
+        color: var(--text-muted);
+    }
+
+    .mobile-day-indicators {
+        display: flex !important;
+        flex-wrap: wrap;
+        gap: 3px;
+        margin-top: 8px;
+        justify-content: center;
+        width: 100%;
+        padding: 0 4px;
+    }
+
+    .mobile-dot {
+        flex: 0 0 24px;
+        height: 4px;
+        border-radius: 2px;
+        background: var(--accent);
+        box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+
+    .mobile-dot.post { background: #3b82f6 !important; }
+    .mobile-dot.reel { background: #a855f7 !important; }
+    .mobile-dot.rescheduled { background: #ef4444 !important; }
+    .mobile-dot.emergency { background: #ef4444 !important; box-shadow: 0 0 8px rgba(239, 68, 68, 0.6); }
+
+    .calendar-day {
+        min-height: 80px !important;
+        padding: 6px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+    }
+
+    .day-number {
+        font-size: 11px !important;
+        margin-bottom: 2px !important;
+    }
+
+    /* Aggressively hide all desktop event blocks on mobile */
+    .day-items.desktop-only, .content-item {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .view-mode-toggle {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        width: 100% !important;
+        background: var(--bg-elevated) !important;
+        padding: 4px !important;
+        border-radius: 12px !important;
+        margin-right: 0 !important;
+        margin-bottom: 12px !important;
+    }
+
+    .view-mode-btn {
+        width: 100% !important;
+        text-align: center !important;
+    }
+
+    .month-nav {
+        width: 100% !important;
+        justify-content: space-between !important;
+        margin-bottom: 12px !important;
+    }
+
+    .month-label {
+        font-size: 18px !important;
+        font-weight: 800 !important;
+        width: auto !important;
+    }
+
+    .export-btn {
+        width: 100% !important;
+        justify-content: center !important;
+        padding: 14px 20px !important;
+        margin-bottom: 12px !important;
+    }
+
+    /* Premium Mobile Header Fixes */
+    .page-header {
+        display: block !important;
+        margin: 0 -20px 24px !important;
+        padding: 80px 20px 24px !important;
+        background: rgba(15, 23, 42, 0.6) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        backdrop-filter: blur(12px) !important;
+        width: auto !important;
+    }
+
+    .header-content {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 20px !important;
+        width: 100% !important;
+    }
+
+    .header-info {
+        width: 100% !important;
+    }
+
+    .page-title {
+        font-size: 32px !important;
+        font-weight: 900 !important;
+        line-height: 1 !important;
+        letter-spacing: -0.04em !important;
+        margin-bottom: 8px !important;
+        color: #fff !important;
+    }
+
+    .page-subtitle {
+        font-size: 14px !important;
+        line-height: 1.4 !important;
+        color: #94a3b8 !important;
+        margin-bottom: 0 !important;
+        display: block !important;
+    }
+
+    .header-controls {
+        width: 100% !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+    }
+
+    .client-dropdown-wrapper {
+        width: 100% !important;
+    }
+
+    .client-dropdown {
+        width: 100% !important;
+        min-width: 0 !important;
+        height: 48px !important;
+        padding: 0 16px !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 12px !important;
+        font-size: 15px !important;
+    }
 }

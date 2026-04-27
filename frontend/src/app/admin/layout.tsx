@@ -65,13 +65,16 @@ export default function AdminLayout({
 
   return (
     <div className="dashboard-container">
-      <button 
-        className="mobile-menu-toggle" 
-        onClick={() => setSidebarOpen(true)}
-        style={{ display: sidebarOpen ? 'none' : 'flex' }}
-      >
-        <Menu size={24} />
-      </button>
+      {/* Mobile Header Top */}
+      <div className="mobile-header-top">
+        <div className="menu-toggle" onClick={() => setSidebarOpen(true)}>
+          <Menu size={24} />
+        </div>
+        <img src="/logo.png" alt="TrueUp Media" className="logo-img" style={{ height: '24px', width: 'auto' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <NotificationBell />
+        </div>
+      </div>
 
       {sidebarOpen && (
         <div 
