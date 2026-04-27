@@ -161,10 +161,10 @@ postingBase.interceptors.request.use(async (config) => {
 export const postingApi = {
     getToday: () => postingBase.get<ContentItem[]>('today'),
     getClients: () => postingBase.get<Client[]>('clients'),
-    getCalendar: (clientId: string, month: string) =>
-        postingBase.get<ContentItem[]>(`calendar?client_id=${clientId}&month=${month}`),
-    getMasterCalendar: (month: string, clientId?: string) =>
-        postingBase.get<ContentItem[]>(`master-calendar?month=${month}${clientId ? `&client_id=${clientId}` : ''}`),
+    getCalendar: (clientId: string, month: string, status?: string, all?: boolean) =>
+        postingBase.get<ContentItem[]>('calendar', { params: { client_id: clientId, month, status, all: all ? 'true' : undefined } }),
+    getMasterCalendar: (month: string, client_id?: string, status?: string, all?: boolean) =>
+        postingBase.get<ContentItem[]>('master-calendar', { params: { month, client_id, status, all: all ? 'true' : undefined } }),
     getContentDetails: (id: string) =>
         postingBase.get<{ item: ContentItem; history: StatusHistoryItem[] }>(`content/${id}`),
     markAsPosted: (id: string, changedBy?: string) =>

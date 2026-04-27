@@ -79,7 +79,7 @@ export default function PostingDashboard() {
     // Fetch stats for the meter
     const fetchTodayStats = async () => {
         try {
-            const res = await postingApi.getMasterCalendar(format(new Date(), 'yyyy-MM'));
+            const res = await postingApi.getMasterCalendar(format(new Date(), 'yyyy-MM'), undefined, undefined, true);
             const data = res.data as ContentItem[];
             const today = new Date();
             const todayItems = data.filter(item => isSameDay(parseISO(item.scheduled_datetime), today));
@@ -141,7 +141,7 @@ export default function PostingDashboard() {
         if (selectedClient === 'all') return;
         setLoading(true);
         try {
-            const res = await postingApi.getCalendar(selectedClient, format(currentMonth, 'yyyy-MM'));
+            const res = await postingApi.getCalendar(selectedClient, format(currentMonth, 'yyyy-MM'), 'WAITING FOR POSTING');
             setCalendarData(res.data);
         } catch (err) { console.error(err); }
         finally { setLoading(false); }
@@ -152,7 +152,8 @@ export default function PostingDashboard() {
         try {
             const res = await postingApi.getMasterCalendar(
                 format(currentMonth, 'yyyy-MM'),
-                selectedClient === 'all' ? undefined : selectedClient
+                selectedClient === 'all' ? undefined : selectedClient,
+                'WAITING FOR POSTING'
             );
             setCalendarData(res.data);
         } catch (err) { console.error(err); }
@@ -388,24 +389,24 @@ export default function PostingDashboard() {
                 {view === 'dashboard' && (
                     <div className="daily-stats-banner">
                         <div className="progress-meter-card">
-                            <div className="progress-info">
-                                <div className="progress-main">
-                                    <div className="progress-count">
-                                        <span className="current">{todayStats.completed}</span>
-                                        <span className="total">/{todayStats.total}</span>
-                                    </div>
-                                    <div className="progress-label">Tasks Completed</div>
+                            <div className="progress-main-info">
+                                <h3 className="stat-label">Today's Progress</h3>
+                                <div className="progress-values">
+                                    <span className="current">{todayStats.completed}</span>
+                                    <span className="separator">/</span>
+                                    <span className="total">{todayStats.total}</span>
+                                    <span className="unit">Tasks Posted</span>
                                 </div>
-                                <div className="meter-wrapper">
-                                    <div className="meter-bar">
-                                        <div className="meter-fill" style={{ width: `${todayStats.percentage}%` }}>
-                                            <div className="meter-glow"></div>
-                                        </div>
+                            </div>
+                            <div className="meter-visual">
+                                <div className="meter-bar">
+                                    <div className="meter-fill" style={{ width: `${todayStats.percentage}%` }}>
+                                        <div className="meter-glow"></div>
                                     </div>
-                                    <div className="meter-stats">
-                                        <span className="percentage">{todayStats.percentage}% Done</span>
-                                        <span className="remaining">{todayStats.remaining} remaining</span>
-                                    </div>
+                                </div>
+                                <div className="meter-labels">
+                                    <span className="percentage">{todayStats.percentage}% Done</span>
+                                    <span className="remaining">{todayStats.remaining} remaining today</span>
                                 </div>
                             </div>
                         </div>
@@ -428,11 +429,17 @@ export default function PostingDashboard() {
                                     <div className="emergency-card-icon">
                                         {task.content_type === 'Post' ? <FileText size={20} /> : <Video size={20} />}
                                     </div>
-                                    <div className="emergency-card-info">
-                                        <p className="emergency-card-client">{task.clients?.company_name}</p>
-                                        <p className="emergency-card-type">{task.content_type} • {format(parseISO(task.scheduled_datetime), 'p')}</p>
+                                    <div className="emergency-card-body">
+                                        <div className="emergency-card-client">{task.clients?.company_name.toUpperCase()}</div>
+                                        <div className="emergency-card-details">
+                                            <span className="type">{task.content_type}</span>
+                                            <span className="dot">•</span>
+                                            <span className="time">{format(parseISO(task.scheduled_datetime), 'h:mm a')}</span>
+                                        </div>
                                     </div>
-                                    <ArrowRight size={18} color="var(--text-muted)" />
+                                    <div className="emergency-card-arrow">
+                                        <ArrowRight size={18} />
+                                    </div>
                                 </div>
                             ))}
                         </div>

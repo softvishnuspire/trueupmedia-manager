@@ -774,42 +774,40 @@
     gap: 48px;
 }
 
-.progress-main {
+.progress-main-info {
+    min-width: 200px;
     display: flex;
     flex-direction: column;
-    min-width: 140px;
+    gap: 4px;
 }
 
-.progress-count {
+.progress-values {
     display: flex;
     align-items: baseline;
-    gap: 4px;
-    margin-bottom: 4px;
+    gap: 8px;
+    margin-top: 4px;
 }
 
-.progress-count .current {
+.progress-values .current {
     font-size: 48px;
     font-weight: 900;
     color: var(--text-primary);
-    line-height: 1;
-    letter-spacing: -0.05em;
 }
 
-.progress-count .total {
+.progress-values .total {
     font-size: 24px;
     font-weight: 700;
+    color: var(--text-secondary);
+}
+
+.progress-values .unit {
+    font-size: 14px;
+    font-weight: 600;
     color: var(--text-muted);
+    margin-left: 8px;
 }
 
-.progress-label {
-    font-size: 11px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--accent);
-}
-
-.meter-wrapper {
+.meter-visual {
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -845,15 +843,15 @@
     animation: shimmer 2s infinite linear;
 }
 
-.meter-stats {
+.meter-labels {
     display: flex;
     justify-content: space-between;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 700;
     color: var(--text-secondary);
 }
 
-.meter-stats .percentage {
+.meter-labels .percentage {
     color: var(--accent);
 }
 

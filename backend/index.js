@@ -987,7 +987,7 @@ app.get('/api/posting/today', async (req, res) => {
 
 // Posting Team: Client Calendar (filtered to WAITING FOR POSTING only)
 app.get('/api/posting/calendar', async (req, res) => {
-    const { client_id, month } = req.query;
+    const { client_id, month, status, all } = req.query;
     if (!client_id || !month) return res.status(400).json({ error: 'Missing client_id or month' });
 
     const [year, mon] = month.split('-');
@@ -995,13 +995,23 @@ app.get('/api/posting/calendar', async (req, res) => {
     const lastDay = new Date(parseInt(year), parseInt(mon), 0).getDate();
     const endDate = `${year}-${mon}-${String(lastDay).padStart(2, '0')}T23:59:59`;
 
-    const { data, error } = await supabase
+    let query = supabase
         .from('content_items')
         .select(`*, clients (company_name)`)
         .eq('client_id', client_id)
         .gte('scheduled_datetime', startDate)
-        .lte('scheduled_datetime', endDate)
-        .order('scheduled_datetime');
+        .lte('scheduled_datetime', endDate);
+
+    // Strictly filter by status unless 'all' is explicitly requested
+    if (all === 'true') {
+        // No status filter
+    } else if (status) {
+        query = query.eq('status', status);
+    } else {
+        query = query.eq('status', 'WAITING FOR POSTING');
+    }
+
+    const { data, error } = await query.order('scheduled_datetime');
 
     if (error) return res.status(500).json({ error: error.message });
     res.json(data);
@@ -1009,7 +1019,7 @@ app.get('/api/posting/calendar', async (req, res) => {
 
 // Posting Team: Master Calendar (filtered to WAITING FOR POSTING only)
 app.get('/api/posting/master-calendar', async (req, res) => {
-    const { month, client_id } = req.query;
+    const { month, client_id, status, all } = req.query;
     if (!month) return res.status(400).json({ error: 'Missing month' });
 
     const [year, mon] = month.split('-');
@@ -1024,6 +1034,15 @@ app.get('/api/posting/master-calendar', async (req, res) => {
         .lte('scheduled_datetime', endDate);
 
     if (client_id) query = query.eq('client_id', client_id);
+    
+    // Strictly filter by status unless 'all' is explicitly requested (for stats)
+    if (all === 'true') {
+        // No status filter
+    } else if (status) {
+        query = query.eq('status', status);
+    } else {
+        query = query.eq('status', 'WAITING FOR POSTING');
+    }
 
     const { data, error } = await query.order('scheduled_datetime');
 

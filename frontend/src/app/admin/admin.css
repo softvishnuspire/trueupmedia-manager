@@ -1,22 +1,37 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
 
 :root {
-    --bg-primary: #0f172a;
-    --bg-surface: rgba(30, 41, 59, 0.7);
-    --bg-elevated: rgba(51, 65, 85, 0.5);
-    --bg-hover: rgba(71, 85, 105, 0.4);
+    --bg-primary: #060a0f;
+    --bg-surface: #0c1220;
+    --bg-elevated: #111827;
+    --bg-hover: #1e293b;
     --accent: #6366f1;
-    --accent-secondary: #a855f7;
-    --accent-glow: rgba(99, 102, 241, 0.25);
-    --text-primary: #f8fafc;
-    --text-secondary: #cbd5e1;
-    --text-muted: #94a3b8;
-    --border: rgba(255, 255, 255, 0.08);
-    --border-hover: rgba(255, 255, 255, 0.15);
+    --accent-glow: rgba(99, 102, 241, 0.15);
+    --accent-secondary: #06b6d4;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --border: rgba(255, 255, 255, 0.06);
+    --border-hover: rgba(255, 255, 255, 0.12);
     --success: #10b981;
     --warning: #f59e0b;
     --danger: #ef4444;
     --font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+[data-theme='light'] {
+    --bg-primary: #f8fafc;
+    --bg-surface: #ffffff;
+    --bg-elevated: #f1f5f9;
+    --bg-hover: #e2e8f0;
+    --accent: #4f46e5;
+    --accent-secondary: #9333ea;
+    --accent-glow: rgba(79, 70, 229, 0.15);
+    --text-primary: #0f172a;
+    --text-secondary: #334155;
+    --text-muted: #64748b;
+    --border: rgba(0, 0, 0, 0.08);
+    --border-hover: rgba(0, 0, 0, 0.12);
 }
 
 /* ─── Base ─── */
@@ -24,13 +39,18 @@
     display: flex;
     min-height: 100vh;
     font-family: var(--font-family);
-    background: radial-gradient(circle at top right, #1e1b4b, #0f172a);
+    background: var(--bg-primary);
     color: var(--text-primary);
+}
+
+/* Fix side lighting issue */
+.dashboard-container::before {
+    display: none;
 }
 
 /* ─── Sidebar ─── */
 .sidebar {
-    width: 240px;
+    width: 260px;
     background: var(--bg-surface);
     border-right: 1px solid var(--border);
     padding: 24px 16px;
@@ -41,7 +61,11 @@
     left: 0;
     bottom: 0;
     z-index: 20;
-    backdrop-filter: blur(12px);
+    transition: all 0.3s ease;
+}
+
+.sidebar-close {
+    display: none;
 }
 
 .logo-container {
@@ -182,10 +206,10 @@
 /* ─── Main Content ─── */
 .main-content {
     flex: 1;
-    margin-left: 240px;
-    padding: 16px 24px;
-    overflow-x: hidden;
-    min-width: 0;
+    margin-left: 260px;
+    padding: 24px 32px;
+    min-height: 100vh;
+    background: var(--bg-primary);
 }
 
 /* ─── Page Header ─── */
@@ -1047,26 +1071,25 @@
 .progress-values .current {
     font-size: 48px;
     font-weight: 900;
-    color: white;
+    color: var(--text-primary);
 }
 
 .progress-values .separator {
-    font-size: 18px;
+    font-size: 24px;
     color: var(--text-muted);
-    margin: 0 2px;
 }
 
 .progress-values .total {
     font-size: 24px;
     font-weight: 700;
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--text-secondary);
 }
 
 .progress-values .unit {
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 600;
     color: var(--text-muted);
-    margin-left: 6px;
+    margin-left: 8px;
 }
 
 .meter-container {
@@ -1077,11 +1100,6 @@
 }
 
 .meter-bar {
-    height: 10px;
-    background: var(--bg-elevated);
-    border-radius: 10px;
-    overflow: hidden;
-    position: relative;
     border: 1px solid var(--border);
 }
 
