@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { X, Send } from 'lucide-react';
-import { notificationsApi } from '@/lib/api';
+import { notificationApi } from '@/lib/api';
 
 interface Props {
     onClose: () => void;
@@ -13,10 +13,10 @@ interface Props {
 export default function SendNotificationModal({ onClose, userRole, onSuccess }: Props) {
     const [title, setTitle] = useState('');
     const [message, setMessage] = useState('');
-    const [type, setType] = useState('INFO');
+    const [type, setType] = useState<'INFO' | 'WARNING' | 'URGENT'>('INFO');
     
     const isAdmin = userRole === 'admin';
-    const [targetType, setTargetType] = useState(isAdmin ? 'ALL' : 'ROLE');
+    const [targetType, setTargetType] = useState<'ALL' | 'ROLE' | 'ROLE_IDENTIFIER'>(isAdmin ? 'ALL' : 'ROLE');
     const [targetRole, setTargetRole] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -33,7 +33,7 @@ export default function SendNotificationModal({ onClose, userRole, onSuccess }: 
         }
 
         try {
-            await notificationsApi.sendNotification({
+            await notificationApi.sendNotification({
                 title,
                 message,
                 type,
@@ -114,7 +114,7 @@ export default function SendNotificationModal({ onClose, userRole, onSuccess }: 
                             <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: 600 }}>Priority/Type</label>
                             <select 
                                 value={type} 
-                                onChange={e => setType(e.target.value)}
+                                onChange={e => setType(e.target.value as 'INFO' | 'WARNING' | 'URGENT')}
                                 style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-primary)' }}
                             >
                                 <option value="INFO">Info (Blue)</option>
@@ -127,7 +127,7 @@ export default function SendNotificationModal({ onClose, userRole, onSuccess }: 
                             <select 
                                 value={targetType} 
                                 onChange={e => {
-                                    setTargetType(e.target.value);
+                                    setTargetType(e.target.value as 'ALL' | 'ROLE' | 'ROLE_IDENTIFIER');
                                     if (e.target.value !== 'ROLE') setTargetRole('');
                                 }}
                                 style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-primary)' }}
