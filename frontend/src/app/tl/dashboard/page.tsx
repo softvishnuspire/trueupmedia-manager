@@ -140,9 +140,11 @@ export default function TLDashboard() {
             const res = await tlApi.getMasterCalendar(format(currentMonth, 'yyyy-MM'), user.id);
             setCalendarData(res.data);
             
-            // Fetch all emergency tasks
+            // Fetch and filter emergency tasks for assigned clients
             const emergencyRes = await emergencyApi.getAll();
-            setEmergencyTasks(emergencyRes.data);
+            const assignedClientIds = clients.map(c => c.id);
+            const filteredEmergency = (emergencyRes.data || []).filter(task => assignedClientIds.includes(task.client_id));
+            setEmergencyTasks(filteredEmergency);
         } catch (err) { console.error(err); } finally { setLoading(false); }
     };
 
@@ -169,7 +171,7 @@ export default function TLDashboard() {
                 fetchClientCalendar();
             }
         }
-    }, [selectedClient, currentMonth, view, user]);
+    }, [selectedClient, currentMonth, view, user, clients]);
 
     useEffect(() => {
         const init = async () => {
@@ -504,44 +506,86 @@ export default function TLDashboard() {
                 )}
 
                 {view === 'dashboard' && (
-                    <div className="daily-stats-banner">
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '16px' }}>
-                            <div className="progress-meter-card" style={{ padding: '20px' }}>
-                                <h3 className="stat-label">Today&apos;s Progress</h3>
-                                <div className="progress-values">
-                                    <span className="current">{todayStats.completed}</span>
-                                    <span className="separator">/</span>
-                                    <span className="total">{todayStats.total}</span>
-                                    <span className="unit"> Tasks</span>
+                    <div className="dashboard-view">
+                        <div className="stats-grid">
+                            <div className="stat-card">
+                                <div className="stat-icon-box" style={{ background: 'rgba(99, 102, 241, 0.15)', color: 'var(--accent)' }}>
+                                    <Users size={28} />
                                 </div>
-                                <div className="meter-label">
-                                    <span className="meter-percentage">{todayStats.percentage}% Complete</span>
+                                <div className="stat-info">
+                                    <h3>Total Clients</h3>
+                                    <p className="stat-value">{clients.length}</p>
+                                </div>
+                            </div>
+                            <div className="stat-card">
+                                <div className="stat-icon-box" style={{ background: 'rgba(16, 185, 129, 0.15)', color: 'var(--success)' }}>
+                                    <CalendarIcon size={28} />
+                                </div>
+                                <div className="stat-info">
+                                    <h3>Scheduled</h3>
+                                    <p className="stat-value">{monthTotal}</p>
+                                </div>
+                            </div>
+                            <div className="stat-card">
+                                <div className="stat-icon-box" style={{ background: 'rgba(245, 158, 11, 0.15)', color: 'var(--warning)' }}>
+                                    <ShieldAlert size={28} />
+                                </div>
+                                <div className="stat-info">
+                                    <h3>Active Pipelines</h3>
+                                    <p className="stat-value">{monthTotal}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="daily-stats-banner" style={{ marginTop: '24px' }}>
+                            <div className="progress-meter-card">
+                                <div className="progress-top-row">
+                                    <div className="progress-main-info">
+                                        <h3 className="stat-label">Today&apos;s Progress</h3>
+                                    </div>
+                                    <div className="progress-values">
+                                        <span className="current">{todayStats.completed}</span>
+                                        <span className="separator">/</span>
+                                        <span className="total">{todayStats.total}</span>
+                                        <span className="unit">Tasks</span>
+                                    </div>
+                                </div>
+                                <div className="meter-labels">
+                                    <span className="percentage">{todayStats.percentage}% Done</span>
                                 </div>
                             </div>
 
-                            <div className="progress-meter-card" style={{ padding: '20px' }}>
-                                <h3 className="stat-label">Week&apos;s Progress</h3>
-                                <div className="progress-values">
-                                    <span className="current">{weekCompleted}</span>
-                                    <span className="separator">/</span>
-                                    <span className="total">{weekTotal}</span>
-                                    <span className="unit"> Tasks</span>
+                            <div className="progress-meter-card">
+                                <div className="progress-top-row">
+                                    <div className="progress-main-info">
+                                        <h3 className="stat-label">Week&apos;s Progress</h3>
+                                    </div>
+                                    <div className="progress-values">
+                                        <span className="current">{weekCompleted}</span>
+                                        <span className="separator">/</span>
+                                        <span className="total">{weekTotal}</span>
+                                        <span className="unit">Tasks</span>
+                                    </div>
                                 </div>
-                                <div className="meter-label">
-                                    <span className="meter-percentage">{weekPercentage}% Complete</span>
+                                <div className="meter-labels">
+                                    <span className="percentage">{weekPercentage}% Done</span>
                                 </div>
                             </div>
 
-                            <div className="progress-meter-card" style={{ padding: '20px' }}>
-                                <h3 className="stat-label">Month&apos;s Progress</h3>
-                                <div className="progress-values">
-                                    <span className="current">{monthCompleted}</span>
-                                    <span className="separator">/</span>
-                                    <span className="total">{monthTotal}</span>
-                                    <span className="unit"> Tasks</span>
+                            <div className="progress-meter-card">
+                                <div className="progress-top-row">
+                                    <div className="progress-main-info">
+                                        <h3 className="stat-label">Month&apos;s Progress</h3>
+                                    </div>
+                                    <div className="progress-values">
+                                        <span className="current">{monthCompleted}</span>
+                                        <span className="separator">/</span>
+                                        <span className="total">{monthTotal}</span>
+                                        <span className="unit">Tasks</span>
+                                    </div>
                                 </div>
-                                <div className="meter-label">
-                                    <span className="meter-percentage">{monthPercentage}% Complete</span>
+                                <div className="meter-labels">
+                                    <span className="percentage">{monthPercentage}% Done</span>
                                 </div>
                             </div>
                         </div>

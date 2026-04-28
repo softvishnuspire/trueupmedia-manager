@@ -274,6 +274,59 @@ export default function AdminDashboard() {
         )}
       </div>
 
+      <div className="daily-stats-banner" style={{ marginTop: '24px' }}>
+        <div className="progress-meter-card">
+          <div className="progress-top-row">
+            <div className="progress-main-info">
+              <h3 className="stat-label">Today&apos;s Progress</h3>
+            </div>
+            <div className="progress-values">
+              <span className="current">{todayStats.completed}</span>
+              <span className="separator">/</span>
+              <span className="total">{todayStats.total}</span>
+              <span className="unit">Tasks</span>
+            </div>
+          </div>
+          <div className="meter-labels">
+            <span className="percentage">{todayStats.percentage}% Done</span>
+          </div>
+        </div>
+
+        <div className="progress-meter-card">
+          <div className="progress-top-row">
+            <div className="progress-main-info">
+              <h3 className="stat-label">Week&apos;s Progress</h3>
+            </div>
+            <div className="progress-values">
+              <span className="current">{weekCompleted}</span>
+              <span className="separator">/</span>
+              <span className="total">{weekTotal}</span>
+              <span className="unit">Tasks</span>
+            </div>
+          </div>
+          <div className="meter-labels">
+            <span className="percentage">{weekPercentage}% Done</span>
+          </div>
+        </div>
+
+        <div className="progress-meter-card">
+          <div className="progress-top-row">
+            <div className="progress-main-info">
+              <h3 className="stat-label">Month&apos;s Progress</h3>
+            </div>
+            <div className="progress-values">
+              <span className="current">{monthCompleted}</span>
+              <span className="separator">/</span>
+              <span className="total">{monthTotal}</span>
+              <span className="unit">Tasks</span>
+            </div>
+          </div>
+          <div className="meter-labels">
+            <span className="percentage">{monthPercentage}% Done</span>
+          </div>
+        </div>
+      </div>
+
       <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '24px', marginBottom: '32px' }}>
         <div className="dashboard-card" style={{ background: 'var(--bg-surface)', padding: '24px', borderRadius: '24px', border: '1px solid var(--border)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
@@ -355,48 +408,6 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="daily-stats-banner" style={{ marginTop: '24px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '16px' }}>
-          <div className="progress-meter-card" style={{ padding: '20px' }}>
-            <h3 className="stat-label">Today&apos;s Progress</h3>
-            <div className="progress-values">
-              <span className="current">{todayStats.completed}</span>
-              <span className="separator">/</span>
-              <span className="total">{todayStats.total}</span>
-              <span className="unit">Tasks</span>
-            </div>
-            <div className="meter-labels">
-              <span className="percentage">{todayStats.percentage}% Done</span>
-            </div>
-          </div>
-
-          <div className="progress-meter-card" style={{ padding: '20px' }}>
-            <h3 className="stat-label">Week&apos;s Progress</h3>
-            <div className="progress-values">
-              <span className="current">{weekCompleted}</span>
-              <span className="separator">/</span>
-              <span className="total">{weekTotal}</span>
-              <span className="unit">Tasks</span>
-            </div>
-            <div className="meter-labels">
-              <span className="percentage">{weekPercentage}% Done</span>
-            </div>
-          </div>
-
-          <div className="progress-meter-card" style={{ padding: '20px' }}>
-            <h3 className="stat-label">Month&apos;s Progress</h3>
-            <div className="progress-values">
-              <span className="current">{monthCompleted}</span>
-              <span className="separator">/</span>
-              <span className="total">{monthTotal}</span>
-              <span className="unit">Tasks</span>
-            </div>
-            <div className="meter-labels">
-              <span className="percentage">{monthPercentage}% Done</span>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {emergencyTasks.length > 0 && (
         <div className="emergency-panel" style={{ marginTop: '32px' }}>

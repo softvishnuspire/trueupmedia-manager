@@ -42,7 +42,8 @@ import {
     CalendarClock,
     Undo2,
     AlertTriangle,
-    ShieldAlert
+    ShieldAlert,
+    Activity
 } from 'lucide-react';
 import { gmApi, emergencyApi, ContentItem, PocNote, StatusHistoryItem } from '@/lib/api';
 import { createClient } from '@/utils/supabase/client';
@@ -220,6 +221,7 @@ export default function GMDashboard() {
                 monthlyContent: data.length,
                 statusBreakdown: breakdown
             });
+            setCalendarData(data);
 
             // Fetch all emergency tasks
             const emergencyRes = await emergencyApi.getAll();
@@ -271,16 +273,7 @@ export default function GMDashboard() {
         },
         { content: 0, design: 0, posted: 0 }
     );
-    const monthTotal = stats.monthlyContent || 0;
-    const monthCompleted = monthStatusCounts.posted;
-    const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
-    const weekEnd = endOfWeek(new Date(), { weekStartsOn: 1 });
-    const weekItems = calendarData.filter(item => {
-        const itemDate = parseISO(item.scheduled_datetime);
-        return itemDate >= weekStart && itemDate <= weekEnd;
-    });
-    const weekTotal = weekItems.length;
-    const weekCompleted = weekItems.filter(item => (item.status || '').toUpperCase() === 'POSTED').length;
+
 
     const handlePrev = () => {
         if (viewMode === 'month') setCurrentMonth(subMonths(currentMonth, 1));
@@ -454,6 +447,19 @@ export default function GMDashboard() {
         const c = clients.find(c => c.id === selectedClient);
         return c?.company_name || 'Client';
     };
+
+    const monthTotal = stats.monthlyContent;
+    const monthCompleted = stats.statusBreakdown['POSTED'] || 0;
+    const monthPercentage = monthTotal > 0 ? Math.round((monthCompleted / monthTotal) * 100) : 0;
+    const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
+    const weekEnd = endOfWeek(new Date(), { weekStartsOn: 1 });
+    const weekItems = calendarData.filter((item) => {
+        const itemDate = parseISO(item.scheduled_datetime);
+        return itemDate >= weekStart && itemDate <= weekEnd;
+    });
+    const weekTotal = weekItems.length;
+    const weekCompleted = weekItems.filter((item) => (item.status || '').toUpperCase() === 'POSTED').length;
+    const weekPercentage = weekTotal > 0 ? Math.round((weekCompleted / weekTotal) * 100) : 0;
 
     return (
         <div className="dashboard-container">
@@ -721,41 +727,6 @@ export default function GMDashboard() {
                     </div>
                 )}
 
-                {view === 'dashboard' && (
-                    <div className="daily-stats-banner">
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '16px' }}>
-                            <div className="progress-meter-card" style={{ padding: '20px' }}>
-                                <h3 className="stat-label">Today&apos;s Progress</h3>
-                                <div className="progress-values">
-                                    <span className="current">{todayStats.completed}</span>
-                                    <span className="separator">/</span>
-                                    <span className="total">{todayStats.total}</span>
-                                    <span className="unit"> Tasks</span>
-                                </div>
-                            </div>
-
-                            <div className="progress-meter-card" style={{ padding: '20px' }}>
-                                <h3 className="stat-label">Week&apos;s Progress</h3>
-                                <div className="progress-values">
-                                    <span className="current">{weekCompleted}</span>
-                                    <span className="separator">/</span>
-                                    <span className="total">{weekTotal}</span>
-                                    <span className="unit"> Tasks</span>
-                                </div>
-                            </div>
-
-                            <div className="progress-meter-card" style={{ padding: '20px' }}>
-                                <h3 className="stat-label">Month&apos;s Progress</h3>
-                                <div className="progress-values">
-                                    <span className="current">{monthCompleted}</span>
-                                    <span className="separator">/</span>
-                                    <span className="total">{monthTotal}</span>
-                                    <span className="unit"> Tasks</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
 
                 {view === 'dashboard' && emergencyTasks.length > 0 && (
                     <div className="emergency-panel">
@@ -788,6 +759,89 @@ export default function GMDashboard() {
 
                 {view === 'dashboard' && (
                     <div className="dashboard-view">
+                        <div className="stats-grid">
+                            <div className="stat-card">
+                                <div className="stat-icon-box" style={{ background: 'rgba(99, 102, 241, 0.15)', color: 'var(--accent)' }}>
+                                    <Users size={28} />
+                                </div>
+                                <div className="stat-info">
+                                    <h3>Total Clients</h3>
+                                    <p className="stat-value">{stats.totalClients}</p>
+                                </div>
+                            </div>
+                            <div className="stat-card">
+                                <div className="stat-icon-box" style={{ background: 'rgba(16, 185, 129, 0.15)', color: 'var(--success)' }}>
+                                    <CalendarIcon size={28} />
+                                </div>
+                                <div className="stat-info">
+                                    <h3>Scheduled</h3>
+                                    <p className="stat-value">{stats.monthlyContent}</p>
+                                </div>
+                            </div>
+                            <div className="stat-card">
+                                <div className="stat-icon-box" style={{ background: 'rgba(245, 158, 11, 0.15)', color: 'var(--warning)' }}>
+                                    <Activity size={28} />
+                                </div>
+                                <div className="stat-info">
+                                    <h3>Active Pipelines</h3>
+                                    <p className="stat-value">{stats.monthlyContent}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="daily-stats-banner" style={{ marginTop: '24px' }}>
+                            <div className="progress-meter-card">
+                                <div className="progress-top-row">
+                                    <div className="progress-main-info">
+                                        <h3 className="stat-label">Today&apos;s Progress</h3>
+                                    </div>
+                                    <div className="progress-values">
+                                        <span className="current">{todayStats.completed}</span>
+                                        <span className="separator">/</span>
+                                        <span className="total">{todayStats.total}</span>
+                                        <span className="unit">Tasks</span>
+                                    </div>
+                                </div>
+                                <div className="meter-labels">
+                                    <span className="percentage">{todayStats.percentage}% Done</span>
+                                </div>
+                            </div>
+
+                            <div className="progress-meter-card">
+                                <div className="progress-top-row">
+                                    <div className="progress-main-info">
+                                        <h3 className="stat-label">Week&apos;s Progress</h3>
+                                    </div>
+                                    <div className="progress-values">
+                                        <span className="current">{weekCompleted}</span>
+                                        <span className="separator">/</span>
+                                        <span className="total">{weekTotal}</span>
+                                        <span className="unit">Tasks</span>
+                                    </div>
+                                </div>
+                                <div className="meter-labels">
+                                    <span className="percentage">{weekPercentage}% Done</span>
+                                </div>
+                            </div>
+
+                            <div className="progress-meter-card">
+                                <div className="progress-top-row">
+                                    <div className="progress-main-info">
+                                        <h3 className="stat-label">Month&apos;s Progress</h3>
+                                    </div>
+                                    <div className="progress-values">
+                                        <span className="current">{monthCompleted}</span>
+                                        <span className="separator">/</span>
+                                        <span className="total">{monthTotal}</span>
+                                        <span className="unit">Tasks</span>
+                                    </div>
+                                </div>
+                                <div className="meter-labels">
+                                    <span className="percentage">{monthPercentage}% Done</span>
+                                </div>
+                            </div>
+                        </div>
+
                         <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '24px', marginTop: '24px' }} className="responsive-dashboard-grid">
                             <div className="dashboard-card">
                                 <div className="card-header">

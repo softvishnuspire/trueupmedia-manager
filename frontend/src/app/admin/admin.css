@@ -1112,15 +1112,16 @@
 .progress-meter-card {
     background: var(--bg-surface);
     border: 1px solid var(--border);
-    border-radius: 24px;
-    padding: 32px 40px;
-    margin-bottom: 32px;
+    border-radius: 20px;
+    padding: 24px 32px;
     display: flex;
-    align-items: center;
-    gap: 64px;
-    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+    flex-direction: column;
+    gap: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     position: relative;
     overflow: hidden;
+    min-height: 130px;
+    justify-content: center;
 }
 
 .progress-meter-card::before {
@@ -1134,11 +1135,16 @@
     box-shadow: 0 0 15px var(--accent-glow);
 }
 
+.progress-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
 .progress-main-info {
-    min-width: 200px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
 }
 
 .stat-label {
@@ -1152,31 +1158,44 @@
 .progress-values {
     display: flex;
     align-items: baseline;
-    gap: 4px;
+    gap: 6px;
 }
 
 .progress-values .current {
-    font-size: 48px;
+    font-size: 42px;
     font-weight: 900;
     color: var(--text-primary);
 }
 
 .progress-values .separator {
-    font-size: 24px;
+    font-size: 20px;
     color: var(--text-muted);
+    font-weight: 600;
 }
 
 .progress-values .total {
     font-size: 24px;
-    font-weight: 700;
+    font-weight: 800;
     color: var(--text-secondary);
 }
 
 .progress-values .unit {
-    font-size: 14px;
-    font-weight: 600;
+    font-size: 13px;
+    font-weight: 700;
     color: var(--text-muted);
-    margin-left: 8px;
+    margin-left: 4px;
+}
+
+.meter-labels {
+    display: flex;
+    width: 100%;
+    justify-content: flex-start;
+}
+
+.meter-labels .percentage {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--text-primary);
 }
 
 .meter-container {

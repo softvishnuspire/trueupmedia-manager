@@ -2017,15 +2017,17 @@
 .progress-meter-card {
     flex: 1;
     background: var(--bg-surface);
-    padding: 20px 24px;
-    border-radius: 20px;
     border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 24px 32px;
     display: flex;
-    align-items: center;
-    gap: 32px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    flex-direction: column;
+    gap: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     position: relative;
     overflow: hidden;
+    min-height: 130px;
+    justify-content: center;
 }
 
 .progress-meter-card::before {
@@ -2039,11 +2041,16 @@
     box-shadow: 0 0 15px var(--accent-glow);
 }
 
-.progress-info {
+.progress-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.progress-main-info {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    min-width: 140px;
 }
 
 .stat-label {
@@ -2057,32 +2064,44 @@
 .progress-values {
     display: flex;
     align-items: baseline;
-    gap: 4px;
+    gap: 6px;
 }
 
 .progress-values .current {
-    font-size: 32px;
+    font-size: 42px;
     font-weight: 900;
     color: var(--text-primary);
 }
 
 .progress-values .separator {
-    font-size: 18px;
+    font-size: 20px;
     color: var(--text-muted);
-    margin: 0 2px;
+    font-weight: 600;
 }
 
 .progress-values .total {
-    font-size: 18px;
-    font-weight: 700;
+    font-size: 24px;
+    font-weight: 800;
     color: var(--text-secondary);
 }
 
 .progress-values .unit {
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 13px;
+    font-weight: 700;
     color: var(--text-muted);
-    margin-left: 6px;
+    margin-left: 4px;
+}
+
+.meter-labels {
+    display: flex;
+    width: 100%;
+    justify-content: flex-start;
+}
+
+.meter-labels .percentage {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--text-primary);
 }
 
 .meter-container {
