@@ -695,7 +695,7 @@
         z-index: 100 !important; /* Higher than overlay */
     }
 
-    .sidebar.open {
+    .sidebar.mobile-open {
         left: 0 !important;
     }
 
